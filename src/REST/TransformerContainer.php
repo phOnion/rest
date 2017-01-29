@@ -23,7 +23,7 @@ class TransformerContainer
 
     public function getDefaultTransformer(): TransformerInterface
     {
-        return array_pop($this->strategies);
+        return array_shift$this->strategies);
     }
 
     public function negotiateTransformer(Accept $accept): TransformerInterface
