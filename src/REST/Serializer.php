@@ -41,7 +41,7 @@ class Serializer
             $data = $hydrator->extract($mapping['fields']);
         }
 
-        if (!isset($serialized['entity'])) {
+        if (!isset($mapping['fields'])) {
             $data = $hydrator->extract();
         }
         
