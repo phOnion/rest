@@ -9,10 +9,17 @@
             "Onion\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "require": {
-        "onion/framework": "~1.0 || 1.0.0-rc1"
+        "onion/framework": "~1.0 || 1.0.0-rc2",
+        "roave/security-advisories": "dev-master"
     },
     "require-dev": {
-        "digitalbazaar/json-ld": "^0.4.7"
+        "digitalbazaar/json-ld": "^0.4.7",
+        "phpunit/phpunit": "^5.7"
     }
 }
