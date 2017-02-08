@@ -24,6 +24,25 @@ class Serializer
         $this->mappings = $mappings;
     }
 
+    private function serializeLinks(array $link, array $data)
+    {
+        if (count($link) === count($link, COUNT_RECURSIVE)) {
+            if (!isset($link['href'])) {    
+                throw new \LogicException('Entry "link" without a key "href" is not allowed');
+            }
+        
+            $link['href'] = str_replace(array_map(function ($value) {
+                return "{{$value}}";            
+            }, array_keys($data)), array_values($data), $link['href']);
+        } else {
+            foreach ($link as $index => $lnk) {
+                $link[$index] = $this->serializeLink($lnk, $data);
+            }
+        }
+    
+        return $link;
+    }
+
     /**
      * @param Hydrator $hydrator A hyratable object to transform
      */
@@ -47,20 +66,7 @@ class Serializer
         
         if (isset($mapping['links'])) {
             foreach ($mapping['links'] as $rel => $link) {
-                if (isset($link['href'])) {
-                    $link['href'] = str_replace(
-                        array_map(
-                            function ($value) {
-                                return "{{$value}}";
-                            },
-                            array_keys($data)
-                        ),
-                        array_values($data),
-                        $link['href']
-                    );
-                }
-
-                $serialized['_links'][$rel] = $link;
+                $serialized['_links'][$rel] = $this->serializeLinks($link);
             }
         }
 
