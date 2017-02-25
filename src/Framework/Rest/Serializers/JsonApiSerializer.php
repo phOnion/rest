@@ -107,11 +107,9 @@ class JsonApiSerializer extends PlainJsonSerializer
             $payload['data']['relationships'][$rel][] = [
                 'links' => $embeds[0]['links'],
                 'data' => array_map(function ($embed) {
-                    $type = $embed['meta']['@type'];
-                    unset($embed['meta']['@type']);
                     return [
                         'id' => (string) $embed['data']['id'],
-                        'type' => $type
+                        'type' => $embed['data']['type']
                     ];
                 }, $embeds)
             ];
