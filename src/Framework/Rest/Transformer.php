@@ -30,7 +30,7 @@ class Transformer
             $data = $hydratableInterface->extract($mapping['fields']);
         }
 
-        $entity = (new Entity($mapping['rel']))->withData($data);
+        $entity = (new Entity($mapping['rel']))->withData($data)->withMeta($mapp['meta'] ?? []);
         foreach ($mapping['links'] as $link) {
             $lnk = new Link($link['rel'], $link['href']);
             foreach ($link as $attr => $value) {

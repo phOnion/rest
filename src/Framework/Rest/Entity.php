@@ -41,6 +41,14 @@ class Entity
         return $this->rel;
     }
 
+    public function withMeta(array $meta): Entity
+    {
+        $self = clone $this;
+        $self->meta = $meta;
+
+        return $self;
+    }
+
     public function getMeta()
     {
         return $this->meta;
