@@ -19,21 +19,17 @@ class Manager
         foreach ($this->namespace as $ns => $path) {
             $iterator = new \DirectoryIterator($path);
             while ($iterator->valid()) {
-                if ($iterator->isDot() || $iterator->isDir()) {
-                    continue;
-                }
+                if (!$iterator->isDot() && !$iterator->isDir()) {
+                    $class = $ns . '\\' . substr($iterator->getFilename(), 0, -4);
+                    if (class_exists($class)) {
+                        $object = new $class;
+                        if ($object instanceof SerializerInterface) {
+                            if ($object->supports($accept)) {
+                                $response->getBody()
+                                    ->write($object->serialize($entity));
 
-                $class = $ns . '\\' . substr($iterator->getFilename(), 0, -4);
-                if (class_exists($class)) {
-                    $object = new $class;
-                    if ($object instanceof SerializerInterface) {
-                        if ($object->supports($accept)) {
-                            $response->getBody()->write(
-                                $object->serialize($entity)
-                            );
-                            $response->withAddedHeader('Content-Type', $object->getContentType());
-
-                            return $response;
+                                return $response->withAddedHeader('Content-Type', $object->getContentType());
+                            }
                         }
                     }
                 }
