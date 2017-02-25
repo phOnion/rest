@@ -21,15 +21,14 @@ class Manager
             while ($iterator->valid()) {
                 if (!$iterator->isDot() && !$iterator->isDir()) {
                     $class = $ns . '\\' . substr($iterator->getFilename(), 0, -4);
-                    if (class_exists($class)) {
+                    if (class_exists($class) && in_array(SerializerInterface::class, class_implements($class), true)) {
+                        /** @var $object SerializerInterface */
                         $object = new $class;
-                        if ($object instanceof SerializerInterface) {
-                            if ($object->supports($accept)) {
-                                $response->getBody()
-                                    ->write($object->serialize($entity));
+                        if ($object->supports($accept)) {
+                            $response->getBody()
+                                ->write($object->serialize($entity));
 
-                                return $response->withAddedHeader('Content-Type', $object->getContentType());
-                            }
+                            return $response->withAddedHeader('Content-Type', $object->getContentType());
                         }
                     }
                 }
