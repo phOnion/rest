@@ -3,10 +3,9 @@ namespace Onion\Framework\Rest\Serializers;
 
 use Onion\Framework\Http\Header\Accept;
 use Onion\Framework\Rest\Entity;
-use Onion\Framework\Rest\Interfaces\SerializerInterface;
 use Psr\Link\EvolvableLinkInterface;
 
-class JsonApiSerializer extends PlainJsonSerializer implements SerializerInterface
+class JsonApiSerializer extends PlainJsonSerializer
 {
 
     public function getContentType(): string
@@ -72,10 +71,11 @@ class JsonApiSerializer extends PlainJsonSerializer implements SerializerInterfa
         }
 
         $payload = [];
-
-        if (($meta = $entity->getMeta()) !== []) {
-            $payload['meta'] = $meta;
-        }
+        $meta = $entity->getMeta();
+        assert(
+            array_key_exists('@type', $meta),
+            new \RuntimeException('Missing meta key "@type" for rel: ' . $entity->getRel())
+        );
 
         if ($entity->getLinksByRel('self') === []) {
             throw new \RuntimeException(
@@ -86,10 +86,9 @@ class JsonApiSerializer extends PlainJsonSerializer implements SerializerInterfa
         $payload['links'] = $this->processLinks($entity->getLinks(), $entity->getData());
         $payload = array_merge($payload, [ 'data' => [
             'id' => (string) $entity->getDataItem('id'),
-            'type' => $entity->getDataItem('type')
+            'type' => $meta['@type']
         ]]);
-        $entity = $entity->withoutDataItem('id')
-            ->withoutDataItem('type');
+        $entity = $entity->withoutDataItem('id');
         $payload = array_merge_recursive($payload, [ 'data' => [
             'attributes' => $entity->getData()
         ]]);
@@ -108,15 +107,23 @@ class JsonApiSerializer extends PlainJsonSerializer implements SerializerInterfa
             $payload['data']['relationships'][$rel][] = [
                 'links' => $embeds[0]['links'],
                 'data' => array_map(function ($embed) {
+                    $type = $embed['meta']['@type'];
+                    unset($embed['meta']['@type']);
                     return [
                         'id' => (string) $embed['data']['id'],
-                        'type' => $embed['data']['type']
+                        'type' => $type
                     ];
                 }, $embeds)
             ];
             $payload = array_merge_recursive($payload, [
                 'included' => $embeds
             ]);
+        }
+
+        if ($meta !== []) {
+            $payload['meta'] = array_filter($meta, function ($index) {
+                return $index[0] !== '@';
+            }, ARRAY_FILTER_USE_KEY);
         }
 
         return $payload;
