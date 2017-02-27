@@ -36,9 +36,7 @@ class HalJsonSerializer extends PlainJsonSerializer implements SerializerInterfa
                 array_map(function ($value) {
                     return "{{$value}}";
                 }, array_keys($data)),
-                array_filter(array_values($data), function ($value) {
-                    return is_string($value);
-                }),
+                array_values($data),
                 $link->getHref()
             ));
 
