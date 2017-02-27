@@ -38,9 +38,7 @@ class JsonApiSerializer extends PlainJsonSerializer
                 array_map(function ($value) {
                     return "{{$value}}";
                 }, array_keys($data)),
-                array_filter(array_values($data), function ($value) {
-                    return is_string($value);
-                }),
+                array_values($data),
                 $link->getHref()
             ));
 
@@ -72,6 +70,11 @@ class JsonApiSerializer extends PlainJsonSerializer
 
         $payload = [];
         $meta = $entity->getMeta();
+
+        if (isset($meta['api'])) {
+            $meta = $meta['api'];
+        }
+
         assert(
             array_key_exists('@type', $meta),
             new \RuntimeException('Missing meta key "@type" for rel: ' . $entity->getRel())
@@ -88,6 +91,8 @@ class JsonApiSerializer extends PlainJsonSerializer
             'id' => (string) $entity->getDataItem('id'),
             'type' => $meta['@type']
         ]]);
+        unset($meta['@type']);
+
         $entity = $entity->withoutDataItem('id');
         $payload = array_merge_recursive($payload, [ 'data' => [
             'attributes' => $entity->getData()
@@ -119,9 +124,7 @@ class JsonApiSerializer extends PlainJsonSerializer
         }
 
         if ($meta !== []) {
-            $payload['meta'] = array_filter($meta, function ($index) {
-                return $index[0] !== '@';
-            }, ARRAY_FILTER_USE_KEY);
+            $payload['meta'] = $meta;
         }
 
         return $payload;
