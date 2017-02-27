@@ -1,0 +1,74 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "Documentation\n\n\nThis is the minimal documentation for the REST content handlers \nprovided by this package, to complement the \nonion/framework\n \ncurrently the package is not framework-agnostic, but will be \nonce the main framework moves some of it's components to external\npackages.\n\n\nAs of now this package provides support for:\n\n\n\n\napplication/json\n: returns all data from the entity\n to the client as a \njson_encode\nd value\n\n\napplication/hal+json\n: \"Big\" HAL response with automatically\n replacing link placeholders with the items available as data \n for the object.\n\n\napplication/api+json\n: The foundation for JSON-API responses\n\n\napplication/ld+json\n: (Needs testing) A minimal JSON-LD capable serialization.\n\n\n\n\nNote that since I am not 100% familiar with json-api and especially with json-ld those 2 might need more extensive testing and I am fully aware that the latter is lacking some features, but they tend to be more complex than the time I am currently able to invest. So that being said, feel free to drop make a PR providing the functionality that you need", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#documentation", 
+            "text": "This is the minimal documentation for the REST content handlers \nprovided by this package, to complement the  onion/framework  \ncurrently the package is not framework-agnostic, but will be \nonce the main framework moves some of it's components to external\npackages.  As of now this package provides support for:   application/json : returns all data from the entity\n to the client as a  json_encode d value  application/hal+json : \"Big\" HAL response with automatically\n replacing link placeholders with the items available as data \n for the object.  application/api+json : The foundation for JSON-API responses  application/ld+json : (Needs testing) A minimal JSON-LD capable serialization.   Note that since I am not 100% familiar with json-api and especially with json-ld those 2 might need more extensive testing and I am fully aware that the latter is lacking some features, but they tend to be more complex than the time I am currently able to invest. So that being said, feel free to drop make a PR providing the functionality that you need", 
+            "title": "Documentation"
+        }, 
+        {
+            "location": "/mappings/", 
+            "text": "Mappings\n\n\nThe mappings are arrays passed to the transformer, from which it can workout what goes where but mainly which are the white-listed fields to use as response data. \n\n\nThey consist of an assoc array, with the class name as key and the value as mapping, that describes the object. This is especially useful since when passing class name, we retrieve it from the passed instance, so no boilerplate in order to allow the transformer to work-it-out or interfaces to implement. you just need a \nHydratableInterface\n implementing entity but that is it.\n\n\nKeep in mind that the \nHydratableInterface\n is a general purpose interface to allow hydration/extraction of object data.", 
+            "title": "Mappings"
+        }, 
+        {
+            "location": "/mappings/#mappings", 
+            "text": "The mappings are arrays passed to the transformer, from which it can workout what goes where but mainly which are the white-listed fields to use as response data.   They consist of an assoc array, with the class name as key and the value as mapping, that describes the object. This is especially useful since when passing class name, we retrieve it from the passed instance, so no boilerplate in order to allow the transformer to work-it-out or interfaces to implement. you just need a  HydratableInterface  implementing entity but that is it.  Keep in mind that the  HydratableInterface  is a general purpose interface to allow hydration/extraction of object data.", 
+            "title": "Mappings"
+        }, 
+        {
+            "location": "/serializers/intro/", 
+            "text": "Serializers Intro\n\n\nSerializers are the object that do the heavy lifting. They serialize\nthe entity representing the extracted data and it's relations. They are responsible to serialize the object to a string representation for the client.\n\n\nSerializers should not accept any external parameters and their behavior should depend only on the datastructure they are working with.", 
+            "title": "Introduction"
+        }, 
+        {
+            "location": "/serializers/intro/#serializers-intro", 
+            "text": "Serializers are the object that do the heavy lifting. They serialize\nthe entity representing the extracted data and it's relations. They are responsible to serialize the object to a string representation for the client.  Serializers should not accept any external parameters and their behavior should depend only on the datastructure they are working with.", 
+            "title": "Serializers Intro"
+        }, 
+        {
+            "location": "/serializers/plain_json/", 
+            "text": "Plain JSON serializer\n\n\nAt most this is basically a call to \njson_encode\n wrapped in an\nobject, calling \nEntity::getData()\n for the response... Nothing fancy.", 
+            "title": "Plain JSON"
+        }, 
+        {
+            "location": "/serializers/plain_json/#plain-json-serializer", 
+            "text": "At most this is basically a call to  json_encode  wrapped in an\nobject, calling  Entity::getData()  for the response... Nothing fancy.", 
+            "title": "Plain JSON serializer"
+        }, 
+        {
+            "location": "/serializers/json_hal/", 
+            "text": "HAL serializer\n\n\nSerializes the entity and its child entities as a HAL response. Automatically attempts to populate links with the appropriate \nvalues from the retrieved data. AFAICT it should be fully compatible with the HAL specification (except maybe for compact\nresponses, but those are left out on purpose)", 
+            "title": "JSON HAL"
+        }, 
+        {
+            "location": "/serializers/json_hal/#hal-serializer", 
+            "text": "Serializes the entity and its child entities as a HAL response. Automatically attempts to populate links with the appropriate \nvalues from the retrieved data. AFAICT it should be fully compatible with the HAL specification (except maybe for compact\nresponses, but those are left out on purpose)", 
+            "title": "HAL serializer"
+        }, 
+        {
+            "location": "/serializers/json_api/", 
+            "text": "JSON API\n\n\nSerializer that converts the data to a JSON-API response.\nThis is as far as I can see compatible with the documentation,\nbut bugs might be expected since I am not 100% familiar with \nthe spec in general.", 
+            "title": "JSON-API"
+        }, 
+        {
+            "location": "/serializers/json_api/#json-api", 
+            "text": "Serializer that converts the data to a JSON-API response.\nThis is as far as I can see compatible with the documentation,\nbut bugs might be expected since I am not 100% familiar with \nthe spec in general.", 
+            "title": "JSON API"
+        }, 
+        {
+            "location": "/serializers/json_ld/", 
+            "text": "JSON-LD\n\n\nThis is mostly a very big experiment, I have never used JSON-LD\nat all for anything and this is a feature that may require\nthroughout testing to identify issues, also some features might be missing, but they seem to be more or less out of scope + too time consuming for investigation at this stage.", 
+            "title": "JSON-LD"
+        }, 
+        {
+            "location": "/serializers/json_ld/#json-ld", 
+            "text": "This is mostly a very big experiment, I have never used JSON-LD\nat all for anything and this is a feature that may require\nthroughout testing to identify issues, also some features might be missing, but they seem to be more or less out of scope + too time consuming for investigation at this stage.", 
+            "title": "JSON-LD"
+        }
+    ]
+}
