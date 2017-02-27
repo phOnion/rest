@@ -23,11 +23,10 @@ class Transformer
         }
 
         $mapping = &$this->mappings[$class];
-        if ($fields !== [] && isset($fields[$mapping['rel']])) {
-
+        if ($fields !== [] || (isset($fields[$mapping['rel']]) && $fields[$mapping['rel']] !== [])) {
             $data = $hydratableInterface->extract(array_intersect($fields[$mapping['rel']], $mapping['fields']));
         } else {
-            $data = $hydratableInterface->extract($mapping['fields']);
+            $data = $hydratableInterface->extract($mapping['fields'] ?? []);
         }
 
         $entity = (new Entity($mapping['rel']))->withData($data)->withMeta($mapping['meta'] ?? []);
@@ -53,13 +52,13 @@ class Transformer
                 $result = $hydratableInterface->{$method}();
                 if (is_array($result)) {
                     foreach ($result as $embedded) {
-                        $entity = $entity->addEmbedded($this->transform($embedded, $includes, $fields));
+                        $entity = $entity->addEmbedded($relation, $this->transform($embedded, $includes, $fields));
                     }
 
                     continue;
                 }
 
-                $entity = $entity->addEmbedded($this->transform($result, $includes, $fields));
+                $entity = $entity->addEmbedded($relation, $this->transform($result, $includes, $fields));
             }
         }
 
