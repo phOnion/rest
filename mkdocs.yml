@@ -1,0 +1,11 @@
+site_name: My Docs
+pages:
+  - Home: index.md
+  - Mappings: mappings.md
+  - Serializers:
+    - Introduction: serializers/intro.md
+    - Plain JSON: serializers/plain_json.md
+    - JSON HAL: serializers/json_hal.md
+    - JSON-API: serializers/json_api.md
+    - JSON-LD: serializers/json_ld.md
+theme: readthedocs
