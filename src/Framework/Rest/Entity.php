@@ -26,19 +26,27 @@ class Entity
 
     private $error = false;
 
-    public function isError()
-    {
-        return $this->error;
-    }
-
     public function __construct(string $rel, bool $isError = false)
     {
         $this->rel = $rel;
     }
 
+    public function isError(): bool
+    {
+        return $this->error;
+    }
+
     public function getRel(): string
     {
         return $this->rel;
+    }
+
+    public function withAddedMeta(array $meta): Entity
+    {
+        $self = clone $this;
+        $self->meta = array_merge($self->meta, $meta);
+
+        return $self;
     }
 
     public function withMeta(array $meta): Entity
@@ -98,20 +106,20 @@ class Entity
         return $this->data;
     }
 
-    public function addEmbedded(Entity $entity): Entity
+    public function addEmbedded(string $type, Entity $entity): Entity
     {
         $self = clone $this;
-        if (!array_key_exists($entity->getRel(), $self->embedded)) {
-            $self->embedded[$entity->getRel()] = [];
+        if (!array_key_exists($type, $self->embedded)) {
+            $self->embedded[$type] = [];
         }
 
-        $self->embedded[$entity->getRel()][] = $entity;
+        $self->embedded[$type][] = $entity;
 
         return $self;
     }
 
     /**
-     * @return array
+     * @return Entity[]
      */
     public function getEmbedded(): array
     {
