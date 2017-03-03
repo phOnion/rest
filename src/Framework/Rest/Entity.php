@@ -2,8 +2,9 @@
 namespace Onion\Framework\Rest;
 
 use Fig\Link\EvolvableLinkProviderTrait;
+use Onion\Framework\Rest\Interfaces\EntityInterface;
 
-class Entity
+class Entity implements EntityInterface
 {
     use EvolvableLinkProviderTrait;
 
@@ -41,7 +42,7 @@ class Entity
         return $this->rel;
     }
 
-    public function withAddedMeta(array $meta): Entity
+    public function withAddedMetaData(array $meta): EntityInterface
     {
         $self = clone $this;
         $self->meta = array_merge($self->meta, $meta);
@@ -49,7 +50,7 @@ class Entity
         return $self;
     }
 
-    public function withMeta(array $meta): Entity
+    public function withMetaData(array $meta): EntityInterface
     {
         $self = clone $this;
         $self->meta = $meta;
@@ -57,12 +58,12 @@ class Entity
         return $self;
     }
 
-    public function getMeta()
+    public function getMetaData(): array
     {
         return $this->meta;
     }
 
-    public function withDataItem(string $name, $value): Entity
+    public function withDataItem(string $name, $value): EntityInterface
     {
         $self = clone $this;
         $self->data[$name] = $value;
@@ -70,7 +71,7 @@ class Entity
         return $self;
     }
 
-    public function withoutDataItem($name): Entity
+    public function withoutDataItem(string $name): EntityInterface
     {
         $self = clone $this;
         unset($self->data[$name]);
@@ -83,7 +84,7 @@ class Entity
         return $this->data[$name] ?? $default;
     }
 
-    public function withData(array $data): Entity
+    public function withData(array $data): EntityInterface
     {
         $self = clone $this;
         $self->data = array_merge($self->data, $data);
@@ -91,12 +92,10 @@ class Entity
         return $self;
     }
 
-    public function withoutData(array $keys): Entity
+    public function withoutData(): EntityInterface
     {
         $self = clone $this;
-        $self->data = array_filter($self->data, function ($index) use ($keys) {
-            return !in_array($index, $keys, true);
-        }, ARRAY_FILTER_USE_KEY);
+        $self->data = [];
 
         return $self;
     }
@@ -106,7 +105,7 @@ class Entity
         return $this->data;
     }
 
-    public function addEmbedded(string $type, Entity $entity): Entity
+    public function addEmbedded(string $type, EntityInterface $entity): EntityInterface
     {
         $self = clone $this;
         if (!array_key_exists($type, $self->embedded)) {
@@ -119,18 +118,10 @@ class Entity
     }
 
     /**
-     * @return Entity[]
+     * @return Entity[][]
      */
     public function getEmbedded(): array
     {
         return $this->embedded;
-    }
-
-    public function addMeta(string $name, $value): Entity
-    {
-        $self = clone $this;
-        $self->$name = $value;
-
-        return $self;
     }
 }
