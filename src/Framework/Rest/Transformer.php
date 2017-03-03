@@ -3,8 +3,10 @@ namespace Onion\Framework\Rest;
 
 use Fig\Link\Link;
 use Onion\Framework\Hydrator\Interfaces\HydratableInterface;
+use Onion\Framework\Rest\Interfaces\EntityInterface;
+use Onion\Framework\Rest\Interfaces\TransformerInterface;
 
-class Transformer
+class Transformer implements TransformerInterface
 {
     private $mappings = [];
     public function __construct(array $mappings)
@@ -12,7 +14,7 @@ class Transformer
         $this->mappings = $mappings;
     }
 
-    public function transform(HydratableInterface $hydratableInterface, array $includes = [], array $fields = []): Entity
+    public function transform(HydratableInterface $hydratableInterface, array $includes = [], array $fields = []): EntityInterface
     {
         $class = get_class($hydratableInterface);
         if (!isset($this->mappings[$class])) {
@@ -29,7 +31,7 @@ class Transformer
             $data = $hydratableInterface->extract($mapping['fields'] ?? []);
         }
 
-        $entity = (new Entity($mapping['rel']))->withData($data)->withMeta($mapping['meta'] ?? []);
+        $entity = (new Entity($mapping['rel']))->withData($data)->withMetaData($mapping['meta'] ?? []);
         foreach ($mapping['links'] as $link) {
             $lnk = new Link($link['rel'], $link['href']);
             foreach ($link as $attr => $value) {
