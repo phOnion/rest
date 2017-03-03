@@ -1,8 +1,8 @@
 <?php declare(strict_types = 1);
 namespace Onion\Framework\Rest\Serializers;
 
-use Onion\Framework\Http\Header\Accept;
-use Onion\Framework\Rest\Entity;
+use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
+use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
 
 class JsonLdSerializer extends PlainJsonSerializer
 {
@@ -24,7 +24,7 @@ class JsonLdSerializer extends PlainJsonSerializer
             '@context' => []
         ];
 
-        $meta = $entity->getMeta();
+        $meta = $entity->getMetaData();
         $payload['@type'] = $entity->getRel();
 
         if ($entity->getLinksByRel('self') !== []) {

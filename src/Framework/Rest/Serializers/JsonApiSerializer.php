@@ -1,8 +1,8 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 namespace Onion\Framework\Rest\Serializers;
 
-use Onion\Framework\Http\Header\Accept;
-use Onion\Framework\Rest\Entity;
+use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
+use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
 use Psr\Link\EvolvableLinkInterface;
 
 class JsonApiSerializer extends PlainJsonSerializer
@@ -69,7 +69,7 @@ class JsonApiSerializer extends PlainJsonSerializer
         }
 
         $payload = [];
-        $meta = $entity->getMeta();
+        $meta = $entity->getMetaData();
 
         if (isset($meta['api'])) {
             $meta = $meta['api'];

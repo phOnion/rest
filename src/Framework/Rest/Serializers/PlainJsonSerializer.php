@@ -1,13 +1,12 @@
 <?php declare(strict_types = 1);
 namespace Onion\Framework\Rest\Serializers;
 
-use Onion\Framework\Http\Header\Accept;
-use Onion\Framework\Rest\Entity;
+use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
+use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
 use Onion\Framework\Rest\Interfaces\SerializerInterface;
 
 class PlainJsonSerializer implements SerializerInterface
 {
-
     public function getContentType(): string
     {
         return 'application/json';
