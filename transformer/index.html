@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Transformer - My Docs</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Transformer";
+    var mkdocs_page_input_path = "transformer.md";
+    var mkdocs_page_url = "/transformer/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> My Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="..">Home</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../mappings/">Mappings</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href="./">Transformer</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#intro">Intro</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#filter-relations">Filter relations</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#filter-relation-fields">Filter relation fields</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <ul class="subnav">
+    <li><span>Serializers</span></li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../serializers/intro/">Introduction</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../serializers/plain_json/">Plain JSON</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../serializers/json_hal/">JSON HAL</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../serializers/json_api/">JSON-API</a>
+        
+    </li>
+
+        
+            
+    <li class="toctree-l1 ">
+        <a class="" href="../serializers/json_ld/">JSON-LD</a>
+        
+    </li>
+
+        
+    </ul>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">My Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Transformer</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="intro">Intro</h2>
+<p>The transformer is the object which creates the intermediate representation of the resource to be serialized. This is especially useful, since it abstracts away the actual object from the serializer and does not require you to follow any conventions or anything that can get in the way of your object.
+Unless , obviously, if you consider the requirement to implement <code>HydratebleInterface</code>, but if you put the time to implement a single 'hydratable' trait you will be fine. </p>
+<p>This decision came from the need to sometimes hydrate objects in bulk without writing boilerplate code, handling naming translations, etc or extracting all data from the object. Also there is no mandatory requirement to use one big array with all the mappings, for example you might create a method and store the meta-data inside the hydratable object itself, but that is up to a personal preference and up to your taste (also, remember.. no convention required :) )</p>
+<h2 id="filter-relations">Filter relations</h2>
+<p>The <code>transform</code> method also supports 2 additional arguments, which specify, the 2nd being <code>array $includes = []</code> that is should contain a list of values representing the relations to retrieve. So for example if you make a request to <code>/products?include=price</code> this should return a list <code>product</code>s and only retrieve the <code>price</code> relation, ignoring anything else like, list of components, similar products, etc.</p>
+<h2 id="filter-relation-fields">Filter relation fields</h2>
+<p>This sort of filtering allows for clients to request only a set of fields for a given relation. This might be useful for requests that intend to update only a small set of their details and not go through the whole process of recreating the data and/or being on a metered data connection (because we should care!). So building upon the previous example with products and price, this one could be like: <code>/products?include=price&amp;fields[price]=total</code> this will return all products only with their price relation, which now will only include the total price, instead of - say - delivery, VAT or anything else.</p>
+<p>## Conclusion
+This might prove to be especially useful for mobile clients which work on metered connections so that they only update what they need to check or to provide a speedier experience, for example when checking for messages, instead of puling the whole messages, a client might pull only the id and sender and on interaction to pull the actual message (instead of wasting data in bulk most of the time).</p>
+<p><em>Note that the examples above use only examples of how data can be provided. Actual passing of the filtering criteria is up to the utilizing implementation and nothing is being handled by default (why would object need access to globals, special keys or anything - Tell don't ask :) ). Some ideas:</em></p>
+<ul>
+<li><code>?include=product,provider&amp;fields=product:id,title;provider:name</code></li>
+<li><code>?include=product,provider&amp;fields[product]=id,title&amp;fields[provider]=name</code></li>
+<li><code>?include[]=product&amp;include[]=provider&amp;fields[product][]=id&amp;fields[product][]=name</code></li>
+</ul>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../serializers/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../mappings/" class="btn btn-neutral" title="Mappings"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+    
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../mappings/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../serializers/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script src="../js/theme.js"></script>
+
+</body>
+</html>

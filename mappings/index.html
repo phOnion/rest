@@ -7,19 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  
-  <title>Mappings - My Docs</title>
-  
-
   <link rel="shortcut icon" href="../img/favicon.ico">
-
-  
+  <title>Mappings - My Docs</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="../css/highlight.css">
-
   
   <script>
     // Current page data
@@ -30,9 +24,7 @@
   
   <script src="../js/jquery-2.1.1.min.js"></script>
   <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script>
-  <script src="../js/theme.js"></script> 
-
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
   
 </head>
 
@@ -52,7 +44,7 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
           
             <li>
     <li class="toctree-l1 ">
@@ -67,10 +59,25 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#mappings">Mappings</a></li>
+                <li class="toctree-l3"><a href="#introduction">Introduction</a></li>
+                
+                    <li><a class="toctree-l4" href="#links">Links</a></li>
+                
+                    <li><a class="toctree-l4" href="#fields">Fields</a></li>
+                
+                    <li><a class="toctree-l4" href="#relations">Relations</a></li>
+                
+                    <li><a class="toctree-l4" href="#meta">Meta</a></li>
                 
             
             </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="../transformer/">Transformer</a>
         
     </li>
 <li>
@@ -150,9 +157,37 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="mappings">Mappings</h2>
-<p>The mappings are arrays passed to the transformer, from which it can workout what goes where but mainly which are the white-listed fields to use as response data. </p>
-<p>They consist of an assoc array, with the class name as key and the value as mapping, that describes the object. This is especially useful since when passing class name, we retrieve it from the passed instance, so no boilerplate in order to allow the transformer to work-it-out or interfaces to implement. you just need a <code>HydratableInterface</code> implementing entity but that is it.</p>
+                <h2 id="introduction">Introduction</h2>
+<p>The mappings are arrays passed to the transformer, from which it can workout what goes where. </p>
+<p>An typical mapping looks something like:</p>
+<pre><code>$mapping = [
+    \Acme\DataObject::class =&gt; [
+        'links' =&gt; [
+            ['rel' =&gt; 'self', 'href' =&gt; '/entityLocation/{id}'],
+            // more links
+        ],
+        'fields' =&gt; ['id', 'field1', 'field2', ...],
+        'relations' =&gt; [
+            'relationType' =&gt; // This is important in some serializations
+                'method' // The name of the method to call on the object to retrieve the related data
+        ],
+        'meta' =&gt; [
+            'ld' =&gt; [], // JSON-LD meta data
+            'api' =&gt; [], // JSON-API meta data
+        ]
+    ]
+];
+</code></pre>
+
+<h3 id="links">Links</h3>
+<p>Links are part of HATEOAS in order to allow clients to "navigate" inside the returned data, also they allow lowering the footprint of the response by allowing the client to request the resources they need instead of receiving a huge JSON blob, regardless of the client's needs.</p>
+<p>A link definition is an array with mandatory: <code>rel</code> &amp; <code>href</code> fields, everything else is pushed as additional attributes to the link.</p>
+<h3 id="fields">Fields</h3>
+<p>The list of fields, which <em>can</em> be retrieved from the object (<em>can</em>, because the transformer provides the ability to provide fields and resources to return).</p>
+<h3 id="relations">Relations</h3>
+<p>Relations are a <code>'field' =&gt; 'method'</code> relation. This is mainly useful for LD responses, since with them the type of the object is not the same as the filed they get populated because of the schema usage as opposed to HAL.</p>
+<h3 id="meta">Meta</h3>
+<p>Meta data should be handled with respect to <code>ld</code> and <code>api</code> keys, since those are special-case where data for JSON- LD and API have different purpose, but in order to define mappings for multiple response types (most appropriate scenario one is content negotiation) so care should be taken.</p>
 <p><strong>Keep in mind that the <code>HydratableInterface</code> is a general purpose interface to allow hydration/extraction of object data.</strong></p>
               
             </div>
@@ -161,7 +196,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../serializers/intro/" class="btn btn-neutral float-right" title="Introduction">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../transformer/" class="btn btn-neutral float-right" title="Transformer">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -183,20 +218,21 @@
       </div>
 
     </section>
-
+    
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
         <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="../serializers/intro/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="../transformer/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
+    <script src="../js/theme.js"></script>
 
 </body>
 </html>

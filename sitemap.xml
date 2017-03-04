@@ -3,16 +3,24 @@
 
     
     <url>
-     <loc>None/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
 
     
     <url>
-     <loc>None/mappings/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/mappings/</loc>
+     <lastmod>2017-03-04</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>/transformer/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -20,32 +28,32 @@
     
         
     <url>
-     <loc>None/serializers/intro/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/serializers/intro/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>None/serializers/plain_json/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/serializers/plain_json/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>None/serializers/json_hal/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/serializers/json_hal/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>None/serializers/json_api/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/serializers/json_api/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
-     <loc>None/serializers/json_ld/</loc>
-     <lastmod>2017-02-28</lastmod>
+     <loc>/serializers/json_ld/</loc>
+     <lastmod>2017-03-04</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
