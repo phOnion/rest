@@ -2,6 +2,7 @@ site_name: My Docs
 pages:
   - Home: index.md
   - Mappings: mappings.md
+  - Transformer: transformer.md
   - Serializers:
     - Introduction: serializers/intro.md
     - Plain JSON: serializers/plain_json.md

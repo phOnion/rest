@@ -25,6 +25,11 @@ class JsonLdSerializer extends PlainJsonSerializer
         ];
 
         $meta = $entity->getMetaData();
+
+        if (isset($meta['ld'])) {
+            $meta = $meta['ld'];
+        }
+
         $payload['@type'] = $entity->getRel();
 
         if ($entity->getLinksByRel('self') !== []) {
@@ -45,7 +50,7 @@ class JsonLdSerializer extends PlainJsonSerializer
                     return in_array($index, ['@vocab', '@base'], true);
                 }
 
-                return strpos($index, 'ld-') === 0;
+                return true;
             }, ARRAY_FILTER_USE_KEY);
         }
 
