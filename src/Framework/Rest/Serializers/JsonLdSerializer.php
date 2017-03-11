@@ -45,7 +45,7 @@ class JsonLdSerializer extends PlainJsonSerializer
         if (count($meta) === 1) {
             $payload['@context'] = array_pop($meta);
         } else {
-            $payload['@context'] = array_filter($meta, function ($index) {
+            $payload['@context'] = array_filter($meta, function ($index) use ($entity) {
                 if (strpos($index, '@') === 0) {
                     return in_array($index, ['@vocab', '@base'], true);
                 }
@@ -57,7 +57,12 @@ class JsonLdSerializer extends PlainJsonSerializer
         $entity = $entity->withoutDataItem('id');
 
         foreach ($entity->getEmbedded() as $rel => $embed) {
-            $payload[$rel] = array_map([$this, 'convert'], $embed);
+            if (is_array($embed)) {
+                $payload[$rel] = array_map([$this, 'convert'], $embed);
+                continue;
+            }
+
+            $payload[$rel] = $embed;
         }
 
         return array_merge($payload, $entity->getData());

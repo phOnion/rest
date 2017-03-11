@@ -54,13 +54,20 @@ class Transformer implements TransformerInterface
                 $result = $hydratableInterface->{$method}();
                 if (is_array($result)) {
                     foreach ($result as $embedded) {
-                        $entity = $entity->addEmbedded($relation, $this->transform($embedded, $includes, $fields));
+                        $entity = $entity->addEmbedded(
+                            $relation,
+                            $this->transform($embedded, $includes, $fields),
+                            true
+                        );
                     }
-
                     continue;
                 }
 
-                $entity = $entity->addEmbedded($relation, $this->transform($result, $includes, $fields));
+                $entity = $entity->addEmbedded(
+                    $relation,
+                    $this->transform($result, $includes, $fields),
+                    false
+                );
             }
         }
 

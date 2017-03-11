@@ -76,7 +76,12 @@ class HalJsonSerializer extends PlainJsonSerializer
                 $payload['_embedded'] = [];
             }
 
-            $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);
+            if (is_array($values)) {
+                $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);
+                continue;
+            }
+
+            $payload['_embedded'][$rel] = [$this->convert($values)];
         }
 
         return $payload;
