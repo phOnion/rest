@@ -62,7 +62,7 @@ class JsonLdSerializer extends PlainJsonSerializer
                 continue;
             }
 
-            $payload[$rel] = $embed;
+            $payload[$rel] = $this->convert($embed);
         }
 
         return array_merge($payload, $entity->getData());
