@@ -105,20 +105,24 @@ class Entity implements EntityInterface
         return $this->data;
     }
 
-    public function addEmbedded(string $type, EntityInterface $entity): EntityInterface
+    public function addEmbedded(string $type, EntityInterface $entity, bool $collection = true): EntityInterface
     {
         $self = clone $this;
-        if (!array_key_exists($type, $self->embedded)) {
-            $self->embedded[$type] = [];
+        if (!$collection) {
+            $self->embedded[$type] = $entity;
+        } else {
+            if (!is_array($self->embedded[$type])) {
+                $self->embedded[$type] = [$entity];
+            } else {
+                $self->embedded[$type][] = $entity;
+            }
         }
-
-        $self->embedded[$type][] = $entity;
 
         return $self;
     }
 
     /**
-     * @return Entity[][]
+     * @return EntityInterface[][]|EntityInterface[]
      */
     public function getEmbedded(): array
     {
