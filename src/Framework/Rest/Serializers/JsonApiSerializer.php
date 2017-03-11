@@ -107,7 +107,11 @@ class JsonApiSerializer extends PlainJsonSerializer
                 $payload['data']['relationships'][$rel] = [];
             }
 
-            $embeds = array_map([$this, 'convert'], $values);
+            if (is_array($values)) {
+                $embeds = array_map([$this, 'convert'], $values);
+            } else {
+                $embeds = [$this->convert($values)];
+            }
 
             $payload['data']['relationships'][$rel][] = [
                 'links' => $embeds[0]['links'],

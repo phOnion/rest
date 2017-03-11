@@ -20,7 +20,19 @@ class PlainJsonSerializer implements SerializerInterface
 
     protected function convert(Entity $entity): array
     {
-        return $entity->getData();
+        $data = $entity->getData();
+        foreach ($entity->getEmbedded() as $rel => $relation) {
+            if (!isset($data[$rel])) {
+                if (is_array($relation)) {
+                    $payload[$rel] = array_map([$this, 'convert'], $relation);
+                    continue;
+                }
+
+                $data[$rel] = $this->convert($relation);
+            }
+        }
+
+        return $data;
     }
 
     public function serialize(Entity $entity): string
