@@ -78,7 +78,7 @@ class Manager
                 }, $filter['fields'] ?? [])
             );
 
-            $response->getBody()->write($serializer->serialize($payload));
+            $response->getBody()->write($serializer->serialize($payload, true));
 
             return $response->withAddedHeader('Content-type', $serializer->getContentType())
                 ->withStatus($payload->isError() ? (int) $payload->getDataItem('code', 400) : 200);
