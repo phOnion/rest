@@ -62,7 +62,7 @@ class JsonApiSerializer extends PlainJsonSerializer
         });
     }
 
-    protected function convert(Entity $entity): array
+    protected function convert(Entity $entity, bool $isRoot = false): array
     {
         if ($entity->isError()) {
             return $this->convertError($entity);
@@ -87,44 +87,71 @@ class JsonApiSerializer extends PlainJsonSerializer
         }
 
         $payload['links'] = $this->processLinks($entity->getLinks(), $entity->getData());
-        $payload = array_merge($payload, [ 'data' => [
-            'id' => (string) $entity->getDataItem('id'),
-            'type' => $meta['@type']
-        ]]);
-        unset($meta['@type']);
+        if ($entity->getDataItem('id', false)) {
+            $payload = array_merge($payload, [
+                'id' => (string) $entity->getDataItem('id'),
+                'type' => $meta['@type']
+            ]);
 
-        $entity = $entity->withoutDataItem('id');
-        $payload = array_merge_recursive($payload, [ 'data' => [
-            'attributes' => $entity->getData()
-        ]]);
+            $entity = $entity->withoutDataItem('id');
+
+            $payload = array_merge_recursive($payload, [
+                'attributes' => $entity->getData()
+            ]);
+        } else {
+            $payload = array_merge($payload, [
+                'data' => array_map(function ($item) {
+                    return $this->convert($item);
+                }, array_values($entity->getData())[0])
+            ]);
+        }
+
+        if (isset($meta['@type'])) {
+            unset($meta['@type']);
+        }
 
         foreach ($entity->getEmbedded() as $rel => $values) {
-            if (!isset($payload['data']['relationships'])) {
-                $payload['data']['relationships'] = [];
+            if (!isset($payload['relationships'])) {
+                $payload['relationships'] = [];
             }
 
-            if (!isset($payload['data']['relationships'][$rel])) {
-                $payload['data']['relationships'][$rel] = [];
+            if (!isset($payload['relationships'][$rel])) {
+                $payload['relationships'][$rel] = [];
             }
 
             if (is_array($values)) {
-                $embeds = array_map([$this, 'convert'], $values);
+                $embeds = array_map(function ($embed) {
+                    return $this->convert($embed);
+                }, $values);
+
+
+                $payload['relationships'][$rel][] = [
+                    'links' => $embeds[0]['links'],
+                    'data' => array_map(function ($embed) {
+                        return [
+                            'id' => (string)$embed['id'],
+                            'type' => $embed['type']
+                        ];
+                    }, $embeds)
+                ];
             } else {
-                $embeds = [$this->convert($values)];
+                $embeds = $this->convert($values);
+                $payload['relationships'][$rel] = [
+                    'links' => $embeds['links'],
+                    'data' => [
+                        'id' => (string)$embeds['id'],
+                        'type' => $embeds['type']
+                    ]
+                ];
             }
 
-            $payload['data']['relationships'][$rel][] = [
-                'links' => $embeds[0]['links'],
-                'data' => array_map(function ($embed) {
-                    return [
-                        'id' => (string) $embed['data']['id'],
-                        'type' => $embed['data']['type']
-                    ];
-                }, $embeds)
-            ];
-            $payload = array_merge_recursive($payload, [
-                'included' => $embeds
-            ]);
+            if ($isRoot) {
+                if ($embeds[0] !== []) {
+                    $payload = array_merge_recursive($payload, [
+                        'included' => $embeds
+                    ]);
+                }
+            }
         }
 
         if ($meta !== []) {
