@@ -31,6 +31,16 @@ class Transformer implements TransformerInterface
             $data = $hydratableInterface->extract($mapping['fields'] ?? []);
         }
 
+        array_walk($data, function (&$value) use ($fields, $includes) {
+            if (is_array($value)) {
+                foreach ($value as $index => $item) {
+                    if ($item instanceof HydratableInterface) {
+                        $value[$index] = $this->transform($item, $includes, $fields);
+                    }
+                }
+            }
+        });
+
         $entity = (new Entity($mapping['rel']))->withData($data)->withMetaData($mapping['meta'] ?? []);
         foreach ($mapping['links'] as $link) {
             $lnk = new Link($link['rel'], $link['href']);
