@@ -111,7 +111,7 @@ class Entity implements EntityInterface
         if (!$collection) {
             $self->embedded[$type] = $entity;
         } else {
-            if (!is_array($self->embedded[$type])) {
+            if (!isset($self->embedded[$type])) {
                 $self->embedded[$type] = [$entity];
             } else {
                 $self->embedded[$type][] = $entity;
