@@ -62,7 +62,7 @@ class Transformer implements TransformerInterface
 
             foreach ($relations as $relation => $method) {
                 $result = $hydratableInterface->{$method}();
-                if (is_array($result)) {
+                if (is_array($result) || ($result instanceof \Traversable)) {
                     foreach ($result as $embedded) {
                         $entity = $entity->addEmbedded(
                             $relation,
