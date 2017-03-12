@@ -59,7 +59,7 @@ class HalJsonSerializer extends PlainJsonSerializer
         return $collection;
     }
 
-    protected function convert(Entity $entity): array
+    protected function convert(Entity $entity, bool $isRoot = false): array
     {
         $payload = [];
         if ($entity->getLinksByRel('self') === []) {
@@ -71,17 +71,21 @@ class HalJsonSerializer extends PlainJsonSerializer
         $payload['_links'] = [];
         $payload['_links'] = $this->processLinks($entity->getLinks(), $entity->getData());
         $payload = array_merge($payload, $entity->getData());
-        foreach ($entity->getEmbedded() as $rel => $values) {
-            if (!isset($payload['_embedded'])) {
-                $payload['_embedded'] = [];
-            }
 
-            if (is_array($values)) {
-                $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);
-                continue;
-            }
+        if ($isRoot) {
+            foreach ($entity->getEmbedded() as $rel => $values) {
+                if (!isset($payload['_embedded'])) {
+                    $payload['_embedded'] = [];
+                }
 
-            $payload['_embedded'][$rel] = [$this->convert($values)];
+
+                if (is_array($values)) {
+                    $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);
+                    continue;
+                }
+
+                $payload['_embedded'][$rel] = [$this->convert($values)];
+            }
         }
 
         return $payload;
