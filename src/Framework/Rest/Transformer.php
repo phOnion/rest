@@ -4,27 +4,34 @@ namespace Onion\Framework\Rest;
 use Fig\Link\Link;
 use Onion\Framework\Hydrator\Interfaces\HydratableInterface;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
+use Onion\Framework\Rest\Interfaces\SerializableInterface;
 use Onion\Framework\Rest\Interfaces\TransformerInterface;
 
 class Transformer implements TransformerInterface
 {
-    private $mappings = [];
-    public function __construct(array $mappings)
+    private $mappings;
+    public function __construct(array $mappings = [])
     {
         $this->mappings = $mappings;
     }
 
     public function transform(HydratableInterface $hydratableInterface, array $includes = [], array $fields = []): EntityInterface
     {
-        $class = get_class($hydratableInterface);
-        if (!isset($this->mappings[$class])) {
-            throw new \InvalidArgumentException(sprintf(
-                'No mappings available for "%s"',
-                $class
-            ));
+        if (!$hydratableInterface instanceof SerializableInterface) {
+            $class = get_class($hydratableInterface);
+            if (!isset($this->mappings[$class])) {
+                throw new \InvalidArgumentException(sprintf(
+                    'No mappings available for "%s"',
+                    $class
+                ));
+            }
+
+            $mapping = &$this->mappings[$class];
+        } else {
+            $mapping = $hydratableInterface->getMappings();
         }
 
-        $mapping = &$this->mappings[$class];
+
         if ($fields !== [] || (isset($fields[$mapping['rel']]) && $fields[$mapping['rel']] !== [])) {
             $data = $hydratableInterface->extract(array_intersect($fields[$mapping['rel']], $mapping['fields']));
         } else {
