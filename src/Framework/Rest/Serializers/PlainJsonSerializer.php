@@ -35,12 +35,11 @@ class PlainJsonSerializer implements SerializerInterface
             }
             return $entity;
         }, $entity->getData());
+
         foreach ($entity->getEmbedded() as $rel => $relation) {
-
             if (!isset($data[$rel])) {
-
                 if (is_array($relation)) {
-                    $payload[$rel] = array_map([$this, 'convert'], $relation);
+                    $data[$rel] = array_map([$this, 'convert'], $relation);
                 }
 
                 if ($relation instanceof HydratableInterface) {
