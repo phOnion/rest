@@ -2,19 +2,26 @@
 
 namespace Tests;
 
-use \Onion\REST\Serializer;
+use Onion\Framework\Hydrator\Interfaces\HydratableInterface;
+use Onion\Framework\Hydrator\PropertyHydrator;
+use Onion\Framework\Rest\Interfaces\EntityInterface;
+use \Onion\Framework\Rest\Transformer;
 use \Tests\Stubs\Serializer\A;
 
 class SerializerTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Transformer
+     */
     private $testable;
 
     public function setUp()
     {
-        $this->testable = new Serializer([
+        $this->testable = new Transformer([
             A::class => [
+                'rel' => 'a',
                 'links' => [
-                    'self' => ['href' => '/entity/{id}']
+                    ['rel' => 'self', 'href' => '/entity/id'],
                 ],
                 'fields' => ['id']
             ]
@@ -23,11 +30,15 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
 
     public function testSimpleSerialization()
     {
-        $this->assertSame(
-            ['_links' => ['self' => ['href' => '/entity/5']], 'id' => 5],
-            $this->testable->serialize(new A())
-        );
+        $this->assertInstanceOf(EntityInterface::class,$this->testable->transform(new A()));
+        $entity = $this->testable->transform(new A());
     }
 
-
+    public function testExceptionWHenNoMappingDefined()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->testable->transform(new class implements HydratableInterface {
+            use PropertyHydrator;
+        });
+    }
 }
