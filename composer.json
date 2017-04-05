@@ -1,6 +1,6 @@
 {
     "name": "onion/rest",
-    "maintainer": [{
+    "authors": [{
         "name": "Dimitar Dimitrov",
         "email": "daghostman.dd@gmail.com"
     }],
@@ -17,10 +17,11 @@
     "require": {
         "php": ">=7.0",
         "roave/security-advisories": "dev-master",
-        "onion/interfaces": "dev-master",
+        "onion/interfaces": "1.0.*",
         "fig/link-util": "^1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.0"
+        "phpunit/phpunit": "^5.7",
+        "onion/framework": "1.0.0"
     }
 }
