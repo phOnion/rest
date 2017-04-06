@@ -2,8 +2,8 @@
 namespace Onion\Framework\Rest;
 
 use Fig\Link\Link;
-use Onion\Framework\Hydrator\Interfaces\HydratableInterface;
-use Onion\Framework\Rest\Interfaces\EntityInterface;
+use Onion\Framework\Hydrator\Interfaces\HydratableInterface as Hydratable;
+use Onion\Framework\Rest\Interfaces\EntityInterface as IEntity;
 use Onion\Framework\Rest\Interfaces\SerializableInterface;
 use Onion\Framework\Rest\Interfaces\TransformerInterface;
 
@@ -15,7 +15,7 @@ class Transformer implements TransformerInterface
         $this->mappings = $mappings;
     }
 
-    public function transform(HydratableInterface $hydratableInterface, array $includes = [], array $fields = []): EntityInterface
+    public function transform(Hydratable $hydratableInterface, array $includes = [], array $fields = []): IEntity
     {
         if (!$hydratableInterface instanceof SerializableInterface) {
             $class = get_class($hydratableInterface);
@@ -41,7 +41,7 @@ class Transformer implements TransformerInterface
         array_walk($data, function (&$value) use ($fields, $includes) {
             if (is_array($value)) {
                 foreach ($value as $index => $item) {
-                    if ($item instanceof HydratableInterface) {
+                    if ($item instanceof Hydratable) {
                         $value[$index] = $this->transform($item, $includes, $fields);
                     }
                 }
