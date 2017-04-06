@@ -34,7 +34,7 @@ class JsonLdSerializer extends PlainJsonSerializer
         $payload['@type'] = $entity->getRel();
 
         if ($entity->getLinksByRel('self') !== []) {
-            $payload['@id'] = rtrim($meta['@context']['@base'] ?? '', '/') . str_replace(
+            $payload['@id'] = rtrim($meta['@base'] ?? '', '/') . str_replace(
                     array_map(function ($value) {
                         return "{{$value}}";
                     }, array_keys($entity->getData())),
@@ -43,7 +43,7 @@ class JsonLdSerializer extends PlainJsonSerializer
                 );
         }
 
-        if (count($meta) === 1) {
+        if (count($meta) === 1 && isset($meta['@vocab'])) {
             $payload['@context'] = array_pop($meta);
         } else {
             $payload['@context'] = array_filter($meta, function ($index) use ($entity) {
@@ -59,7 +59,7 @@ class JsonLdSerializer extends PlainJsonSerializer
             if (!in_array('self', $link->getRels())) {
                 array_map(function (string $rel) use ($entity, $link, &$payload, $meta) {
                     /** @var EvolvableLinkInterface $link */
-                    $link = $link->withHref(rtrim($meta['@context']['@base'] ?? '', '/') . str_replace(
+                    $link = $link->withHref(rtrim($meta['@base'] ?? '', '/') . str_replace(
                             array_map(function ($key) {
                                 return "{{$key}}";
                             }, array_keys($entity->getData())),
@@ -87,7 +87,7 @@ class JsonLdSerializer extends PlainJsonSerializer
             }
         }
 
-        return array_merge($payload, array_map(function($entity) {
+        return array_merge(array_map(function($entity) {
             if (is_array($entity)) {
                 foreach ($entity as $index => $item) {
                     if ($item instanceof Entity) {
@@ -101,6 +101,6 @@ class JsonLdSerializer extends PlainJsonSerializer
             }
 
             return $entity;
-        }, $entity->getData()));
+        }, $entity->getData()), $payload);
     }
 }
