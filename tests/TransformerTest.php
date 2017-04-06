@@ -8,7 +8,7 @@ use Onion\Framework\Rest\Interfaces\EntityInterface;
 use \Onion\Framework\Rest\Transformer;
 use \Tests\Stubs\Serializer\A;
 
-class SerializerTest extends \PHPUnit_Framework_TestCase
+class TransformerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var Transformer
