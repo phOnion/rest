@@ -38,17 +38,48 @@ class Transformer implements TransformerInterface
             $data = $hydratableInterface->extract($mapping['fields'] ?? []);
         }
 
-        array_walk($data, function (&$value) use ($fields, $includes) {
+        $entity = (new Entity($mapping['rel']))->withMetaData($mapping['meta'] ?? []);
+
+        array_walk($data, function ($value, $idx) use ($fields, $includes, &$entity) {
             if (is_array($value)) {
                 foreach ($value as $index => $item) {
                     if ($item instanceof Hydratable) {
-                        $value[$index] = $this->transform($item, $includes, $fields);
+                        $object = $this->transform($item, $includes, $fields);
+                        $entity = $entity->addEmbedded(
+                            $idx,
+                            $object
+                        );
                     }
                 }
             }
+
+            if ($value instanceof Hydratable) {
+                $object = $this->transform($value, $includes, $fields);
+                $entity = $entity->addEmbedded(
+                    $idx,
+                    $object,
+                    $object instanceof \Countable || $object instanceof \Traversable
+                );
+            }
         });
 
-        $entity = (new Entity($mapping['rel']))->withData($data)->withMetaData($mapping['meta'] ?? []);
+        $data = array_filter($data, function ($value) {
+            if (is_array($value)) {
+                $state = false;
+                foreach ($value as $item) {
+                    if ($item instanceof Hydratable && !$state) {
+                        $state = true;
+                    }
+                }
+
+                return !$state;
+            }
+
+            return !$value instanceof Hydratable;
+        });
+
+        $entity = $entity->withData($data);
+
         foreach ($mapping['links'] as $link) {
             $lnk = new Link($link['rel'], $link['href']);
             foreach ($link as $attr => $value) {
