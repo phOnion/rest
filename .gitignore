@@ -3,3 +3,4 @@ vendor/
 tags
 demo/
 *.swp
+.idea/
