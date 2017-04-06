@@ -4,6 +4,13 @@ namespace Onion\Framework\Rest;
 use Fig\Link\EvolvableLinkProviderTrait;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 
+/**
+ * Class Entity
+ *
+ * @package Onion\Framework\Rest
+ *
+ * @codeCoverageIgnore
+ */
 class Entity implements EntityInterface
 {
     use EvolvableLinkProviderTrait;
