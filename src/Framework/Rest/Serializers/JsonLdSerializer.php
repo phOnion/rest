@@ -87,20 +87,6 @@ class JsonLdSerializer extends PlainJsonSerializer
             }
         }
 
-        return array_merge(array_map(function($entity) {
-            if (is_array($entity)) {
-                foreach ($entity as $index => $item) {
-                    if ($item instanceof Entity) {
-                        $entity[$index] = $this->convert($item);
-                    }
-                }
-            }
-
-            if ($entity instanceof Entity) {
-                $entity = $this->convert($entity);
-            }
-
-            return $entity;
-        }, $entity->getData()), $payload);
+        return array_merge($entity->getData(), $payload);
     }
 }
