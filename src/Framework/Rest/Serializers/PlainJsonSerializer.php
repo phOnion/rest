@@ -2,7 +2,6 @@
 namespace Onion\Framework\Rest\Serializers;
 
 use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
-use Onion\Framework\Hydrator\Interfaces\HydratableInterface;
 use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
 use Onion\Framework\Rest\Interfaces\SerializerInterface;
 
@@ -42,7 +41,7 @@ class PlainJsonSerializer implements SerializerInterface
                     $data[$rel] = array_map([$this, 'convert'], $relation);
                 }
 
-                if ($relation instanceof HydratableInterface) {
+                if ($relation instanceof Entity) {
                     $data[$rel] = $this->convert($relation);
                 }
             }
