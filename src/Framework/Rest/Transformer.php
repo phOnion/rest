@@ -71,8 +71,8 @@ class Transformer implements TransformerInterface
             $lnk = new Link($link['rel'], str_replace(
                 array_map(function ($value) {
                     return "{{$value}}";
-                }, array_keys($data)),
-                array_values($data),
+                }, array_keys($hydratableInterface->extract())),
+                array_values($hydratableInterface->extract()),
                 $link['href']
             ));
             foreach ($link as $attr => $value) {
