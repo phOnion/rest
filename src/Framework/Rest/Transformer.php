@@ -67,12 +67,13 @@ class Transformer implements TransformerInterface
             }
         });
 
+        $placeholders = array_filter($hydratableInterface->extract(), 'is_scalar');
         foreach ($mapping['links'] as $link) {
             $lnk = new Link($link['rel'], str_replace(
                 array_map(function ($value) {
                     return "{{$value}}";
-                }, array_keys($hydratableInterface->extract())),
-                array_values($hydratableInterface->extract()),
+                }, array_keys($placeholders)),
+                array_values($placeholders),
                 $link['href']
             ));
             foreach ($link as $attr => $value) {
