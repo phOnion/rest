@@ -40,7 +40,7 @@ class Transformer implements TransformerInterface
 
         $entity = (new Entity($mapping['rel']))->withMetaData($mapping['meta'] ?? []);
 
-        array_walk($data, function ($value, $idx) use ($fields, $includes, &$entity) {
+        array_walk($data, function (&$value, $idx) use ($fields, $includes, &$entity) {
             if (is_array($value)) {
                 foreach ($value as $index => $item) {
                     if ($item instanceof Hydratable) {
@@ -61,7 +61,29 @@ class Transformer implements TransformerInterface
                     $object instanceof \Countable || $object instanceof \Traversable
                 );
             }
+
+            if ($value instanceof \DateTime) {
+                $value = $value->format(\DateTime::ATOM);
+            }
         });
+
+        foreach ($mapping['links'] as $link) {
+            $lnk = new Link($link['rel'], str_replace(
+                array_map(function ($value) {
+                    return "{{$value}}";
+                }, array_keys($data)),
+                array_values($data),
+                $link['href']
+            ));
+            foreach ($link as $attr => $value) {
+                if ($attr === 'rel' || $attr === 'href') {
+                    continue;
+                }
+
+                $lnk = $lnk->withAttribute($attr, $value);
+            }
+            $entity = $entity->withLink($lnk);
+        }
 
         $data = array_filter($data, function ($value) {
             if (is_array($value)) {
@@ -79,18 +101,6 @@ class Transformer implements TransformerInterface
         });
 
         $entity = $entity->withData($data);
-
-        foreach ($mapping['links'] as $link) {
-            $lnk = new Link($link['rel'], $link['href']);
-            foreach ($link as $attr => $value) {
-                if ($attr === 'rel' || $attr === 'href') {
-                    continue;
-                }
-
-                $lnk = $lnk->withAttribute($attr, $value);
-            }
-            $entity = $entity->withLink($lnk);
-        }
 
         if (isset($mapping['relations'])) {
             $relations = $mapping['relations'];

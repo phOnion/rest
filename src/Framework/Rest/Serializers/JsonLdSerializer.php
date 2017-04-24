@@ -59,13 +59,7 @@ class JsonLdSerializer extends PlainJsonSerializer
             if (!in_array('self', $link->getRels())) {
                 array_map(function (string $rel) use ($entity, $link, &$payload, $meta) {
                     /** @var EvolvableLinkInterface $link */
-                    $link = $link->withHref(rtrim($meta['@base'] ?? '', '/') . str_replace(
-                            array_map(function ($key) {
-                                return "{{$key}}";
-                            }, array_keys($entity->getData())),
-                            array_values($entity->getData()),
-                            $link->getHref()
-                        ));
+                    $link = $link->withHref(rtrim($meta['@base'] ?? '', '/') . $link->getHref());
 
                     if (!$link->isTemplated()) {
                         $payload[$rel] = $link->getHref();

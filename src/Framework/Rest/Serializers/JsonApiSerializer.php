@@ -34,13 +34,6 @@ class JsonApiSerializer extends PlainJsonSerializer
             if ($rel === 'curies') {
                 continue;
             }
-            $link = $link->withHref(str_replace(
-                array_map(function ($value) {
-                    return "{{$value}}";
-                }, array_keys($data)),
-                array_values($data),
-                $link->getHref()
-            ));
 
             if (($attributes = $link->getAttributes()) !== []) {
                 $collection[$rel] = [

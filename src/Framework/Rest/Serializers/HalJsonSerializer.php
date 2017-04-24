@@ -30,13 +30,6 @@ class HalJsonSerializer extends PlainJsonSerializer
         $collection = [];
         foreach ($links as $link) {
             $rel = implode(',', $link->getRels());
-            $link = $link->withHref(str_replace(
-                array_map(function ($value) {
-                    return "{{$value}}";
-                }, array_keys($data)),
-                array_values($data),
-                $link->getHref()
-            ));
 
             if (array_key_exists($rel, $collection)) {
                 if (count($collection[$rel]) === count($collection[$rel], COUNT_RECURSIVE)) {
