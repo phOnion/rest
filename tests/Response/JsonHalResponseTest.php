@@ -1,37 +1,13 @@
 <?php
 
-namespace Serializers;
+namespace Tests\Response;
 
-use Onion\Framework\Http\Header\Interfaces\AcceptInterface;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
-use Onion\Framework\Rest\Serializers\HalJsonSerializer;
+use Onion\Framework\Rest\Response\JsonHalResponse;
 use Psr\Link\EvolvableLinkInterface;
 
-class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
+class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var HalJsonSerializer
-     */
-    private $testable;
-
-    public function setUp()
-    {
-        $this->testable = new HalJsonSerializer();
-    }
-
-    public function testSupport()
-    {
-        $accept = $this->prophesize(AcceptInterface::class);
-        $accept->supports('application/hal+json')->wilLReturn(true);
-
-        $this->assertTrue($this->testable->supports($accept->reveal()));
-    }
-
-    public function testContentType()
-    {
-        $this->assertSame('application/hal+json', $this->testable->getContentType());
-    }
-
     public function testExceptionOnMissingLinks()
     {
         $this->expectException(\RuntimeException::class);
@@ -40,7 +16,7 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([]);
 
-        $this->testable->serialize($entity->reveal());
+        new JsonHalResponse($entity->reveal());
     }
 
     public function testBasicSerialization()
@@ -56,11 +32,12 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
+        $entity->getEmbedded()->willReturn([]);
 
 
         $this->assertJsonStringEqualsJsonString(
             '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -91,6 +68,7 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal(), $c1->reveal(), $c2->reveal()]);
+        $entity->getEmbedded()->willReturn([]);
 
 
         $this->assertJsonStringEqualsJsonString(
@@ -98,7 +76,7 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
             '{"href":"/docs/{rel}", "templated":true, "name":"docs"}, ' .
             '{"href":"/rels/{rel}", "templated":true, "name":"rel"}' .
             ']}, "id": 5}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -126,13 +104,7 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
         // When the element is root
         $this->assertJsonStringEqualsJsonString(
             '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5, "_embedded": {"mock": [{"_links": {"self": {"href": "/", "templated": false}}, "name": "John"}]}}',
-            $this->testable->serialize($entity->reveal(), true)
-        );
-
-        // When the element is not root (avoids creating a large test case)
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -160,13 +132,7 @@ class HalJsonSerializerTest extends \PHPUnit_Framework_TestCase
         // When the element is root
         $this->assertJsonStringEqualsJsonString(
             '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5, "_embedded": {"mock": [{"_links": {"self": {"href": "/", "templated": false}}, "name": "John"}]}}',
-            $this->testable->serialize($entity->reveal(), true)
-        );
-
-        // When the element is not root (avoids creating a large test case)
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 }

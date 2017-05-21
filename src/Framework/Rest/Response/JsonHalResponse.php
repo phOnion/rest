@@ -1,21 +1,19 @@
 <?php declare(strict_types=1);
-namespace Onion\Framework\Rest\Serializers;
+namespace Onion\Framework\Rest\Response;
 
-use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
-use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
-use Psr\Link\EvolvableLinkInterface;
+use Onion\Framework\Rest\Interfaces\EntityInterface;
+use Zend\Diactoros\Response;
 
-class HalJsonSerializer extends PlainJsonSerializer
+class JsonHalResponse extends Response\JsonResponse
 {
-    public function getContentType(): string
-    {
-        return 'application/hal+json';
-    }
+    use Response\InjectContentTypeTrait;
 
-    public function supports(Accept $accept): bool
+    public function __construct(EntityInterface $entity, int $status = 200, array $headers = [])
     {
-        return $accept->supports(
-            $this->getContentType()
+        parent::__construct(
+            $this->convert($entity, true),
+            $status,
+            $this->injectContentType('application/hal+json', $headers)
         );
     }
 
@@ -25,7 +23,7 @@ class HalJsonSerializer extends PlainJsonSerializer
      *
      * @return array
      */
-    private function processLinks(array $links, array $data): array
+    private function processLinks(array $links): array
     {
         $collection = [];
         foreach ($links as $link) {
@@ -52,7 +50,7 @@ class HalJsonSerializer extends PlainJsonSerializer
         return $collection;
     }
 
-    protected function convert(Entity $entity, bool $isRoot = false): array
+    private function convert(EntityInterface $entity, bool $isRoot = false): array
     {
         $payload = [];
         if ($entity->getLinksByRel('self') === []) {
@@ -61,7 +59,6 @@ class HalJsonSerializer extends PlainJsonSerializer
             );
         }
 
-        $payload['_links'] = [];
         $payload['_links'] = $this->processLinks($entity->getLinks(), $entity->getData());
         $payload = array_merge($payload, $entity->getData());
 
@@ -70,7 +67,6 @@ class HalJsonSerializer extends PlainJsonSerializer
                 if (!isset($payload['_embedded'])) {
                     $payload['_embedded'] = [];
                 }
-
 
                 if (is_array($values)) {
                     $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);

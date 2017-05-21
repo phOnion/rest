@@ -1,41 +1,21 @@
 <?php
 
-namespace Serializers;
+namespace Tests\Response;
 
-use Onion\Framework\Http\Header\Interfaces\AcceptInterface;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
-use Onion\Framework\Rest\Serializers\PlainJsonSerializer;
+use Onion\Framework\Rest\Response\JsonPlainResponse;
 
-class PlainJsonSerializerTest extends \PHPUnit_Framework_TestCase
+class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var PlainJsonSerializer
-     */
-    private $testable;
-    public function setUp()
-    {
-        $this->testable = new PlainJsonSerializer();
-    }
-
-    public function testContentType()
-    {
-        $this->assertSame('application/json', $this->testable->getContentType());
-    }
-
-    public function testSupport()
-    {
-        $accept = $this->prophesize(AcceptInterface::class);
-        $accept->supports('application/json')->willReturn(true);
-
-        $this->assertTrue($this->testable->supports($accept->reveal()));
-    }
-
     public function testDataTransformation()
     {
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getEmbedded()->willReturn([]);
-        $this->assertJsonStringEqualsJsonString('{"id": 5}', $this->testable->serialize($entity->reveal()));
+        $this->assertJsonStringEqualsJsonString(
+            '{"id": 5}',
+            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+        );
     }
 
     public function testTransformationWithEmbedded()
@@ -49,7 +29,7 @@ class PlainJsonSerializerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": {"name": "John"}}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -64,7 +44,7 @@ class PlainJsonSerializerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": {"name": "John"}}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -79,7 +59,7 @@ class PlainJsonSerializerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": [{"name": "John"}]}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 
@@ -94,7 +74,7 @@ class PlainJsonSerializerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": [{"name": "John"}]}',
-            $this->testable->serialize($entity->reveal())
+            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
         );
     }
 }

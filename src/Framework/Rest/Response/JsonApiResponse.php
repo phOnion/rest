@@ -1,32 +1,39 @@
 <?php declare(strict_types=1);
-namespace Onion\Framework\Rest\Serializers;
 
-use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
-use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
+namespace Onion\Framework\Rest\Response;
+
+use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Psr\Link\EvolvableLinkInterface;
+use Zend\Diactoros\Response\InjectContentTypeTrait;
+use Zend\Diactoros\Response\JsonResponse;
 
-class JsonApiSerializer extends PlainJsonSerializer
+class JsonApiResponse extends JsonResponse
 {
+    use InjectContentTypeTrait;
 
-    public function getContentType(): string
+    public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
-        return 'application/vnd.api+json';
-    }
-
-    public function supports(Accept $accept): bool
-    {
-        return $accept->supports(
-            $this->getContentType()
+        parent::__construct(
+            !$entity->isError() ? $this->convert($entity, true) : [
+                'id' => (string) $entity->getDataItem('id'),
+                'links' => $this->processLinks($entity->getLinks()),
+                'status' => $status,
+                'title' => $entity->getDataItem('title'),
+                'detail' => $entity->getDataItem('detail'),
+                'source' => $entity->getDataItem('source'),
+                'meta' => $entity->getMetaData()
+            ],
+            $status,
+            $this->injectContentType('application/vnd.api+json', $headers)
         );
     }
 
     /**
      * @param EvolvableLinkInterface[] $links
-     * @param array                    $data
      *
      * @return array
      */
-    private function processLinks(array $links, array $data): array
+    private function processLinks(array $links): array
     {
         $collection = [];
         foreach ($links as $link) {
@@ -48,19 +55,8 @@ class JsonApiSerializer extends PlainJsonSerializer
         return $collection;
     }
 
-    private function convertError(Entity $entity): array
+    private function convert(EntityInterface $entity, bool $isRoot = false): array
     {
-        return array_filter($entity->getData(), function ($value) {
-            return $value !== null;
-        });
-    }
-
-    protected function convert(Entity $entity, bool $isRoot = false): array
-    {
-        if ($entity->isError()) {
-            return $this->convertError($entity);
-        }
-
         $payload = [];
         $meta = $entity->getMetaData();
 
@@ -79,7 +75,7 @@ class JsonApiSerializer extends PlainJsonSerializer
             );
         }
 
-        $payload['links'] = $this->processLinks($entity->getLinks(), $entity->getData());
+        $payload['links'] = $this->processLinks($entity->getLinks());
         if ($entity->getDataItem('id', false)) {
             $payload = array_merge($payload, [
                 'id' => (string) $entity->getDataItem('id'),
@@ -88,14 +84,16 @@ class JsonApiSerializer extends PlainJsonSerializer
 
             $entity = $entity->withoutDataItem('id');
 
-            $payload = array_merge_recursive($payload, [
-                'attributes' => $entity->getData()
-            ]);
+            if (!empty($entity->getData())) {
+                $payload = array_merge_recursive($payload, [
+                    'attributes' => $entity->getData()
+                ]);
+            }
         } else {
             $payload = array_merge($payload, [
                 'data' => array_map(function ($item) {
                     return $this->convert($item);
-                }, array_values($entity->getData())[0])
+                }, array_values($entity->getEmbedded()))
             ]);
         }
 
@@ -139,10 +137,9 @@ class JsonApiSerializer extends PlainJsonSerializer
             }
 
             if ($isRoot) {
-                if ($embeds[0] !== []) {
-                    $payload = array_merge_recursive($payload, [
-                        'included' => $embeds
-                    ]);
+                if ($embeds !== []) {
+                    $payload = ['data' => $payload];
+                    $payload['included'] = isset($embeds[0]) ? $embeds : [$embeds];
                 }
             }
         }

@@ -1,25 +1,26 @@
-<?php declare(strict_types = 1);
-namespace Onion\Framework\Rest\Serializers;
+<?php declare(strict_types=1);
 
-use Onion\Framework\Http\Header\Interfaces\AcceptInterface as Accept;
-use Onion\Framework\Rest\Interfaces\EntityInterface as Entity;
+namespace Onion\Framework\Rest\Response;
+
+use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Psr\Link\EvolvableLinkInterface;
+use Zend\Diactoros\Response\InjectContentTypeTrait;
+use Zend\Diactoros\Response\JsonResponse;
 
-class JsonLdSerializer extends PlainJsonSerializer
+class JsonLdResponse extends JsonResponse
 {
-    public function getContentType(): string
-    {
-        return 'application/ld+json';
-    }
+    use InjectContentTypeTrait;
 
-    public function supports(Accept $accept): bool
+    public function __construct(EntityInterface $entity, $status = 200, array $headers = [], $encodingOptions = self::DEFAULT_JSON_FLAGS)
     {
-        return $accept->supports(
-            $this->getContentType()
+        parent::__construct(
+            $this->convert($entity, true),
+            $status,
+            $this->injectContentType('application/ld+json', $headers)
         );
     }
 
-    protected function convert(Entity $entity, bool $isRoot = false): array
+    private function convert(EntityInterface $entity, bool $isRoot = false): array
     {
         $payload = [
             '@context' => []
@@ -46,7 +47,7 @@ class JsonLdSerializer extends PlainJsonSerializer
         if (count($meta) === 1 && isset($meta['@vocab'])) {
             $payload['@context'] = array_pop($meta);
         } else {
-            $payload['@context'] = array_filter($meta, function ($index) use ($entity) {
+            $payload['@context'] = array_filter($meta, function ($index) {
                 if (strpos($index, '@') === 0) {
                     return in_array($index, ['@vocab', '@base'], true);
                 }
@@ -57,7 +58,7 @@ class JsonLdSerializer extends PlainJsonSerializer
 
         foreach ($entity->getLinks() as $link) {
             if (!in_array('self', $link->getRels())) {
-                array_map(function (string $rel) use ($entity, $link, &$payload, $meta) {
+                array_map(function (string $rel) use ($link, &$payload, $meta) {
                     /** @var EvolvableLinkInterface $link */
                     $link = $link->withHref(rtrim($meta['@base'] ?? '', '/') . $link->getHref());
 
