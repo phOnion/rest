@@ -3,17 +3,18 @@
 namespace Onion\Framework\Rest\Response;
 
 use Onion\Framework\Rest\Interfaces\EntityInterface;
-use Zend\Diactoros\Response\JsonResponse;
+use GuzzleHttp\Psr7\Response;
+use function GuzzleHttp\Psr7\stream_for;
 
-class JsonPlainResponse extends JsonResponse
+class JsonPlainResponse extends Response
 {
+    use JsonResponse;
+
     public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
-        parent::__construct(
-            $this->convert($entity, true),
-            $status,
-            $headers
-        );
+        $headers['content-type'] = 'application/ld+json';
+        $payload = $this->encode($this->convert($entity));
+        parent::__construct(stream_for($payload), $status, $headers);
     }
 
     protected function convert(EntityInterface $entity): array

@@ -4,20 +4,18 @@ namespace Onion\Framework\Rest\Response;
 
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Psr\Link\EvolvableLinkInterface;
-use Zend\Diactoros\Response\InjectContentTypeTrait;
-use Zend\Diactoros\Response\JsonResponse;
+use GuzzleHttp\Psr7\Response;
+use function GuzzleHttp\Psr7\stream_for;
 
-class JsonLdResponse extends JsonResponse
+class JsonLdResponse extends Response
 {
     use InjectContentTypeTrait;
 
-    public function __construct(EntityInterface $entity, $status = 200, array $headers = [], $encodingOptions = self::DEFAULT_JSON_FLAGS)
+    public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
-        parent::__construct(
-            $this->convert($entity, true),
-            $status,
-            $this->injectContentType('application/ld+json', $headers)
-        );
+        $headers['content-type'] = 'application/ld+json';
+        $payload = $this->encode($this->convert($entity));
+        parent::__construct(stream_for($payload), $status, $headers);
     }
 
     private function convert(EntityInterface $entity, bool $isRoot = false): array
@@ -36,12 +34,12 @@ class JsonLdResponse extends JsonResponse
 
         if ($entity->getLinksByRel('self') !== []) {
             $payload['@id'] = rtrim($meta['@base'] ?? '', '/') . str_replace(
-                    array_map(function ($value) {
-                        return "{{$value}}";
-                    }, array_keys($entity->getData())),
-                    array_values($entity->getData()),
-                    array_values($entity->getLinksByRel('self'))[0]->getHref()
-                );
+                array_map(function ($value) {
+                    return "{{$value}}";
+                }, array_keys($entity->getData())),
+                array_values($entity->getData()),
+                array_values($entity->getLinksByRel('self'))[0]->getHref()
+            );
         }
 
         if (count($meta) === 1 && isset($meta['@vocab'])) {

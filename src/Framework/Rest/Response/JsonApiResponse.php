@@ -4,28 +4,27 @@ namespace Onion\Framework\Rest\Response;
 
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Psr\Link\EvolvableLinkInterface;
-use Zend\Diactoros\Response\InjectContentTypeTrait;
-use Zend\Diactoros\Response\JsonResponse;
+use GuzzleHttp\Psr7\Response;
+use function GuzzleHttp\Psr7\stream_for;
 
-class JsonApiResponse extends JsonResponse
+class JsonApiResponse extends Response
 {
-    use InjectContentTypeTrait;
+    use JsonResponse;
 
     public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
-        parent::__construct(
-            !$entity->isError() ? $this->convert($entity, true) : [
-                'id' => (string) $entity->getDataItem('id'),
-                'links' => $this->processLinks($entity->getLinks()),
-                'status' => $status,
-                'title' => $entity->getDataItem('title'),
-                'detail' => $entity->getDataItem('detail'),
-                'source' => $entity->getDataItem('source'),
-                'meta' => $entity->getMetaData()
-            ],
-            $status,
-            $this->injectContentType('application/vnd.api+json', $headers)
-        );
+        $payload = !$entity->isError() ? $this->convert($entity, true) : [
+            'id' => (string) $entity->getDataItem('id'),
+            'links' => $this->processLinks($entity->getLinks()),
+            'status' => $status,
+            'title' => $entity->getDataItem('title'),
+            'detail' => $entity->getDataItem('detail'),
+            'source' => $entity->getDataItem('source'),
+            'meta' => $entity->getMetaData()
+        ];
+
+        $headers['content-type'] = 'application/vnd.api+json';
+        parent::__construct(stream_for($this->encode($payload)), $status, $headers);
     }
 
     /**

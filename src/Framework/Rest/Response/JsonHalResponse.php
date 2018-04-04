@@ -1,20 +1,20 @@
 <?php declare(strict_types=1);
 namespace Onion\Framework\Rest\Response;
 
+use GuzzleHttp\Psr7\Response;
+use function GuzzleHttp\Psr7\stream_for;
+use Onion\Framework\Rest\Response\JsonResponse;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
-use Zend\Diactoros\Response;
 
-class JsonHalResponse extends Response\JsonResponse
+class JsonHalResponse extends Response
 {
-    use Response\InjectContentTypeTrait;
+    use JsonResponse;
 
     public function __construct(EntityInterface $entity, int $status = 200, array $headers = [])
     {
-        parent::__construct(
-            $this->convert($entity, true),
-            $status,
-            $this->injectContentType('application/hal+json', $headers)
-        );
+        $headers['content-type'] = 'application/hal+json';
+        $payload = $this->encode($this->convert($entity));
+        parent::__construct(stream_for($payload), $status, $headers);
     }
 
     /**
