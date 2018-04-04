@@ -14,7 +14,7 @@ class JsonHalResponse extends Response
     {
         $headers['content-type'] = 'application/hal+json';
         $payload = $this->encode($this->convert($entity));
-        parent::__construct(stream_for($payload), $status, $headers);
+        parent::__construct($status, $headers, stream_for($this->encode($payload)));
     }
 
     /**

@@ -9,13 +9,12 @@ use function GuzzleHttp\Psr7\stream_for;
 
 class JsonLdResponse extends Response
 {
-    use InjectContentTypeTrait;
-
+    use JsonResponse;
     public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
         $headers['content-type'] = 'application/ld+json';
         $payload = $this->encode($this->convert($entity));
-        parent::__construct(stream_for($payload), $status, $headers);
+        parent::__construct($status, $headers, stream_for($this->encode($payload)));
     }
 
     private function convert(EntityInterface $entity, bool $isRoot = false): array

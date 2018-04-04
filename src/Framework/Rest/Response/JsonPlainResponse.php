@@ -12,9 +12,9 @@ class JsonPlainResponse extends Response
 
     public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
     {
-        $headers['content-type'] = 'application/ld+json';
+        $headers['content-type'] = 'application/json';
         $payload = $this->encode($this->convert($entity));
-        parent::__construct(stream_for($payload), $status, $headers);
+        parent::__construct($status, $headers, stream_for($this->encode($payload)));
     }
 
     protected function convert(EntityInterface $entity): array

@@ -24,7 +24,7 @@ class JsonApiResponse extends Response
         ];
 
         $headers['content-type'] = 'application/vnd.api+json';
-        parent::__construct(stream_for($this->encode($payload)), $status, $headers);
+        parent::__construct($status, $headers, stream_for($this->encode($payload)));
     }
 
     /**
