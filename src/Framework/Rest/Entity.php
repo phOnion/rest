@@ -112,7 +112,7 @@ class Entity implements EntityInterface
         return $this->data;
     }
 
-    public function addEmbedded(string $type, EntityInterface $entity, bool $collection = true): EntityInterface
+    public function withAddedEmbedded(string $type, EntityInterface $entity, bool $collection = true): EntityInterface
     {
         $self = clone $this;
         if (!$collection) {
