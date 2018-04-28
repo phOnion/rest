@@ -13,7 +13,7 @@ class JsonHalResponse extends Response
     public function __construct(EntityInterface $entity, int $status = 200, array $headers = [])
     {
         $headers['content-type'] = 'application/hal+json';
-        $payload = $this->encode($this->convert($entity));
+        $payload = $this->encode($this->convert($entity, true));
         parent::__construct($status, $headers, stream_for($payload));
     }
 
