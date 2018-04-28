@@ -14,7 +14,7 @@ class JsonPlainResponse extends Response
     {
         $headers['content-type'] = 'application/json';
         $payload = $this->encode($this->convert($entity));
-        parent::__construct($status, $headers, stream_for($this->encode($payload)));
+        parent::__construct($status, $headers, stream_for($payload));
     }
 
     protected function convert(EntityInterface $entity): array

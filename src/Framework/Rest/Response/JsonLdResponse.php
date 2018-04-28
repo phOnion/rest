@@ -14,7 +14,7 @@ class JsonLdResponse extends Response
     {
         $headers['content-type'] = 'application/ld+json';
         $payload = $this->encode($this->convert($entity));
-        parent::__construct($status, $headers, stream_for($this->encode($payload)));
+        parent::__construct($status, $headers, stream_for($payload));
     }
 
     private function convert(EntityInterface $entity, bool $isRoot = false): array
