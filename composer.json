@@ -18,11 +18,11 @@
         "php": "^7.2",
         "roave/security-advisories": "dev-master",
         "guzzlehttp/psr7": "^1.4",
-        "onion/interfaces": "^2.0.0-rc1",
+        "onion/interfaces": "^2.0.0-rc3",
         "fig/link-util": "^1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7",
-        "onion/framework": "^2.0.0-rc1"
+        "justinrainbow/json-schema": "^1.2"
     }
 }
