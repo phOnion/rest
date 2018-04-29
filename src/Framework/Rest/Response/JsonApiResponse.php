@@ -160,16 +160,20 @@ class JsonApiResponse extends Response
                     'Entity mappings, must have "self" link'
                 );
             }
+        }
 
+        if ($this->responseType === self::RESPONSE_TYPE_DATA) {
             assert(
                 array_key_exists('@type', $meta),
                 new \RuntimeException('Missing meta key "@type" for rel: ' . $entity->getRel())
             );
 
             $payload['type'] = $meta['@type'];
-            if (isset($meta['@type'])) {
-                unset($meta['@type']);
-            }
+
+        }
+
+        if (isset($meta['@type'])) {
+            unset($meta['@type']);
         }
 
         $payload['meta'] = (object) $meta;
