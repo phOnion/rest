@@ -9,8 +9,8 @@ class TransformableCollection implements \Iterator, \Countable, TransformableInt
 {
     /** @var TransformableInterface[] */
     private $items;
-    private $links = [];
     private $rel;
+    private $links = [];
 
     public function __construct(string $rel, iterable $items, iterable $links = [])
     {
@@ -23,12 +23,12 @@ class TransformableCollection implements \Iterator, \Countable, TransformableInt
         $this->links = $links;
     }
 
-    public function transform(array $includes = [], array $fields = []): EntityInterface
+    public function transform(iterable $includes = [], iterable $fields = []): EntityInterface
     {
         $this->rewind();
         /** @var EntityInterface $first */
         $first = $this->current()->transform($fields);
-        $entity = new Entity('collection');
+        $entity = new Entity($this->rel);
         foreach ($this->items as $item) {
             /**
              * @var TransformableInterface $item
@@ -39,16 +39,14 @@ class TransformableCollection implements \Iterator, \Countable, TransformableInt
                 continue;
             }
 
-            $entity = $entity->withAddedEmbedded($embedded->getRel(), $embedded);
+            $entity = $entity->withEmbedded($embedded);
         }
 
         foreach ($this->links as $link) {
             $entity = $entity->withLink($link);
         }
 
-        return $entity->withData([
-            'count' => count($this->items),
-        ])->withL;
+        return $entity->withDataItem('count', count($this->items));
     }
 
     public function next()
