@@ -307,4 +307,36 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         );
         $this->assertTrue($this->validator->isValid());
     }
+
+    public function testInfoResponse()
+    {
+        $self = $this->prophesize(EvolvableLinkInterface::class);
+        $self->getHref()->willReturn('/{id}');
+        $self->getAttributes()->willReturn([]);
+        $self->isTemplated()->willReturn(false);
+        $self->getRels()->willReturn(['self']);
+
+        $entity = $this->prophesize(EntityInterface::class);
+        $entity->getMetaData()->willReturn([
+            'api' => [
+                'author' => 'Dimitar Dimitrov',
+            ]
+        ]);
+        $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
+        $entity->getLinks()->willReturn([$self->reveal()]);
+
+
+        $response = new JsonApiResponse(
+            $entity->reveal(),
+            404,
+            [],
+            JsonApiResponse::RESPONSE_TYPE_INFO
+        );
+
+        $this->validator->check(
+            $response->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
+        );
+        $this->assertTrue($this->validator->isValid());
+    }
 }
