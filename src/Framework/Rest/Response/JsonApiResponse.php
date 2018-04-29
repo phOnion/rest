@@ -172,9 +172,7 @@ class JsonApiResponse extends Response
             }
         }
 
-        if (!empty($meta)) {
-            $payload['meta'] = (object) $meta;
-        }
+        $payload['meta'] = (object) $meta;
 
         $payload['links'] = $this->processLinks($entity->getLinks());
 
