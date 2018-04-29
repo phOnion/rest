@@ -2,12 +2,20 @@
 
 namespace Tests\Response;
 
+use JsonSchema\Validator;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Onion\Framework\Rest\Response\JsonApiResponse;
 use Psr\Link\EvolvableLinkInterface;
 
 class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var Validator */
+    private $validator;
+
+    public function setUp()
+    {
+        $this->validator = new Validator();
+    }
     public function testBasicSerialization()
     {
         $self = $this->prophesize(EvolvableLinkInterface::class);
@@ -22,7 +30,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
                 '@type' => 'Thing'
             ]
         ]);
-        $entity->isError()->willReturn(false);
         $entity->getRel()->willReturn('user');
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
@@ -33,14 +40,12 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
-
-        $this->assertJsonStringEqualsJsonString(
-            '{"links": {"self": "/{id}"}, ' .
-            '"id": "5", ' .
-            '"type": "Thing"}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+        $entity->hasEmbedded()->willReturn(false);
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithoutId()
@@ -57,7 +62,7 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
                 '@type' => 'Thing'
             ]
         ]);
-        $entity->isError()->willReturn(false);
+        $entity->hasEmbedded()->willReturn(false);
         $entity->getRel()->willReturn('user');
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
@@ -67,12 +72,13 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"links": {"self": "/{id}"}, "data": []}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithOnlySchemaContext()
@@ -90,7 +96,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
             ]
         ]);
         $entity->getRel()->willReturn('Thing');
-        $entity->isError()->willReturn(false);
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getDataItem('id', false)->willReturn(5);
         $entity->getDataItem('id')->willReturn(5);
@@ -100,15 +105,14 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"links": {"self": "/{id}"}, ' .
-            '"id": "5", ' .
-            '"type": "Thing"}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithAdditionalLinks()
@@ -144,7 +148,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
                 '@type' => 'Thing'
             ]
         ]);
-        $entity->isError()->willReturn(false);
         $entity->getRel()->willReturn('Thing');
         $entity->getDataItem('id', false)->willReturn(5);
         $entity->getDataItem('id')->willReturn(5);
@@ -155,16 +158,15 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn(['spouse' => 25]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"links": {"self": "/{id}", "spouse": {"href": "/users/{spouse}", "meta": {"name": "profile"}}}, ' .
-            '"id": 5, ' .
-            '"type": "Thing", "attributes": {"spouse":25}}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbedded()
@@ -177,7 +179,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         $self->withHref('/')->willReturn($self->reveal());
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
-        $embeddedEntity->isError()->willReturn(false);
         $embeddedEntity->getMetaData()->willReturn([
             'api' => [
                 '@type' => 'Thing'
@@ -185,7 +186,7 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         ]);
         $embeddedEntity->getRel()->willReturn('relative');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
-        $embeddedEntity->getEmbedded()->willReturn([]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $embeddedEntity->getLinks()->willReturn([$self->reveal()]);
         $embeddedEntity->getDataItem('id', false)->willReturn(5);
@@ -196,7 +197,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         });
 
         $entity = $this->prophesize(EntityInterface::class);
-        $entity->isError()->willReturn(false);
         $entity->getMetaData()->willReturn([
             'api' => [
                 '@type' => 'Thing'
@@ -208,19 +208,18 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getDataItem('id')->willReturn(5);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
-        $entity->getEmbedded()->willReturn(['mock' => $embeddedEntity->reveal()]);
+        $entity->hasEmbedded()->willReturn(true);
+        $entity->getEmbedded()->willReturn([$embeddedEntity->reveal()]);
         $entity->withoutDataItem('id')->will(function () use (&$entity) {
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
 
-        // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"data": {"links": {"self": "/{id}"}, ' .
-            '"id": "5", ' .
-            '"type": "Thing", "relationships": {"mock": {"links": {"self": "/{id}"}, "data": {"id": 5, "type": "Thing"}}}}, "included": [{"id": "5", "type": "Thing", "links": {"self": "/{id}"}, "attributes": {"name": "John"}}]}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbeddedArray()
@@ -233,7 +232,6 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         $self->withHref('/')->willReturn($self->reveal());
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
-        $embeddedEntity->isError()->willReturn(false);
         $embeddedEntity->getMetaData()->willReturn([
             'api' => [
                 '@type' => 'Thing'
@@ -241,7 +239,7 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
         ]);
         $embeddedEntity->getRel()->willReturn('Thing');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
-        $embeddedEntity->getEmbedded()->willReturn([]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->getDataItem('id', false)->willReturn(5);
         $embeddedEntity->getDataItem('id')->willReturn(5);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
@@ -257,50 +255,56 @@ class JsonApiResponseTest extends \PHPUnit_Framework_TestCase
                 '@type' => 'Thing'
             ]
         ]);
-        $entity->isError()->willReturn(false);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
         $entity->getDataItem('id', false)->willReturn(5);
         $entity->getDataItem('id')->willReturn(5);
-        $entity->getEmbedded()->willReturn(['mock' => [$embeddedEntity->reveal()]]);
+        $entity->hasEmbedded()->willReturn(true);
+        $entity->getEmbedded()->willReturn([$embeddedEntity->reveal()]);
         $entity->withoutDataItem('id')->will(function () use (&$entity) {
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
 
-        // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"data": {"links": {"self": "/{id}"}, ' .
-            '"id": "5", ' .
-            '"type": "Thing", "relationships": {"mock": [{"links": {"self": "/{id}"}, "data": [{"id": 5, "type": "Thing"}]}]}}, "included": [{"id": "5", "type": "Thing", "links": {"self": "/{id}"}, "attributes": {"name": "John"}}]}',
-            (string) (new JsonApiResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonApiResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
-    public function testEntityErrorHandling()
+    public function testErrorResponse()
     {
-        $entity = $this->prophesize(EntityInterface::class);
-        $entity->isError()->willReturn(true);
-        $entity->getLinks()->willReturn([]);
-        $entity->getDataItem('id')->willReturn('unique-id');
-        $entity->getDataItem('source')->willReturn([]);
-        $entity->getDataItem('title')->willReturn('Error');
-        $entity->getDataItem('detail')->willReturn('Some error info');
-        $entity->getMetaData()->willReturn([]);
+        $error = $this->prophesize(EntityInterface::class);
+        $error->getData()->willReturn([
+            'id' => 'c6e29260-b3ad-47bd-9f02-367e366dda3f',
+            'title' => 'Not Found',
+            'detail' => 'The page you requested could not be found',
+            'code' => '1234',
+        ]);
+        $error->getMetaData()->willReturn([]);
+        $error->getLinksByRel('self')->willReturn([]);
+        $error->getLinks()->willReturn([]);
+        $error->getRel()->wilLReturn('error');
 
-        $this->assertJsonStringEqualsJsonString(<<<JSON
-{
-    "id": "unique-id",
-    "status": 400,
-    "title": "Error",
-    "detail": "Some error info",
-    "meta": [],
-    "source": [],
-    "links": []
-}
-JSON
-, (new JsonApiResponse($entity->reveal(), 400))->getBody()->getContents());
+        $entity = $this->prophesize(EntityInterface::class);
+        $entity->getEmbedded()->willReturn([$error->reveal()]);
+        $entity->getMetaData()->willReturn([]);
+        $entity->getLinks()->willReturn([]);
+
+        $response = new JsonApiResponse(
+            $entity->reveal(),
+            404,
+            [],
+            JsonApiResponse::RESPONSE_TYPE_ERROR
+        );
+
+        $this->validator->check(
+            $response->getBody()->getContents(),
+            (object) ['$ref' => 'http://jsonapi.org/schema']
+        );
+        $this->assertTrue($this->validator->isValid());
     }
 }

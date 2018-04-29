@@ -2,13 +2,22 @@
 
 namespace Response;
 
+use JsonSchema\Validator;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Onion\Framework\Rest\Response\JsonLdResponse;
 use Psr\Link\EvolvableLinkInterface;
 
-
 class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 {
+    // http://json-schema.org/draft-04/schema
+
+    private $validator;
+
+    public function setUp()
+    {
+        $this->validator = new Validator();
+    }
+
     public function testBasicSerialization()
     {
         $self = $this->prophesize(EvolvableLinkInterface::class);
@@ -33,16 +42,13 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
-
-
-        $this->assertJsonStringEqualsJsonString(
-            '{"@context": {"@base": "http://example.com", "visible": true}, ' .
-            '"@id": "http://example.com/5", ' .
-            '"@type": "Thing"}',
-            (string) (new JsonLdResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithOnlySchemaContext()
@@ -67,15 +73,14 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"@context": "http://schema.org", ' .
-            '"@id": "/5", ' .
-            '"@type": "Thing"}',
-            (string) (new JsonLdResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithAdditionalLinks()
@@ -118,16 +123,15 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
             $entity->getData()->willReturn(['spouse' => 25]);
             return $entity->reveal();
         });
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"@context": {"@base": "http://example.com"}, ' .
-            '"@id": "http://example.com/5", ' .
-            '"@type": "Thing", "spouse":"http://example.com/users/25"}',
-            (string) (new JsonLdResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbedded()
@@ -147,7 +151,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         ]);
         $embeddedEntity->getRel()->willReturn('Thing');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
-        $embeddedEntity->getEmbedded()->willReturn([]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $embeddedEntity->getLinks()->willReturn([$self->reveal()]);
         $embeddedEntity->withoutDataItem('id')->will(function () use (&$embeddedEntity) {
@@ -165,19 +169,18 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
+        $entity->hasEmbedded()->willReturn(true);
         $entity->getEmbedded()->willReturn(['mock' => $embeddedEntity->reveal()]);
         $entity->withoutDataItem('id')->will(function () use (&$entity) {
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
 
-        // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"@context": {"@base": "http://example.com"}, ' .
-            '"@id": "http://example.com/5", ' .
-            '"@type": "Thing", "mock": {"@id": "http://example.com/5", "@type": "Thing", "@context": {"@base": "http://example.com"},"name": "John"}}',
-            (string) (new JsonLdResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbeddedArray()
@@ -197,9 +200,9 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         ]);
         $embeddedEntity->getRel()->willReturn('Thing');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
-        $embeddedEntity->getEmbedded()->willReturn([]);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $embeddedEntity->getLinks()->willReturn([$self->reveal()]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->withoutDataItem('id')->will(function () use (&$embeddedEntity) {
             $embeddedEntity->getData()->willReturn(['name' => 'John']);
             return $embeddedEntity->reveal();
@@ -215,18 +218,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
-        $entity->getEmbedded()->willReturn(['mock' => [$embeddedEntity->reveal()]]);
+        $entity->hasEmbedded()->willReturn(true);
+        $entity->getEmbedded()->willReturn(['mock' => $embeddedEntity->reveal()]);
         $entity->withoutDataItem('id')->will(function () use (&$entity) {
             $entity->getData()->willReturn([]);
             return $entity->reveal();
         });
 
-        // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"@context": {"@base": "http://example.com"}, ' .
-            '"@id": "http://example.com/5", ' .
-            '"@type": "Thing", "mock": [{"@id": "http://example.com/5", "@type": "Thing", "@context": {"@base": "http://example.com"},"name": "John"}]}',
-            (string) (new JsonLdResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 }

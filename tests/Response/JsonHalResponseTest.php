@@ -5,9 +5,17 @@ namespace Tests\Response;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Onion\Framework\Rest\Response\JsonHalResponse;
 use Psr\Link\EvolvableLinkInterface;
+use JsonSchema\Validator;
 
 class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
 {
+    // https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json
+
+    public function setUp()
+    {
+        $this->validator = new Validator();
+    }
+
     public function testExceptionOnMissingLinks()
     {
         $this->expectException(\RuntimeException::class);
@@ -32,13 +40,14 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5}',
-            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonHalResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testBasicSerializationWithCuries()
@@ -68,16 +77,14 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal(), $c1->reveal(), $c2->reveal()]);
-        $entity->getEmbedded()->willReturn([]);
+        $entity->hasEmbedded()->willReturn(false);
 
 
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}, "curies":[' .
-            '{"href":"/docs/{rel}", "templated":true, "name":"docs"}, ' .
-            '{"href":"/rels/{rel}", "templated":true, "name":"rel"}' .
-            ']}, "id": 5}',
-            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonHalResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbedded()
@@ -90,9 +97,11 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
         $self->withHref('/')->willReturn($self->reveal());
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
+        $embeddedEntity->getRel()->willReturn('rel');
         $embeddedEntity->getData()->willReturn(['name' => 'John']);
         $embeddedEntity->getEmbedded()->willReturn([]);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->getLinks()->willReturn([$self->reveal()]);
 
         $entity = $this->prophesize(EntityInterface::class);
@@ -100,12 +109,14 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
         $entity->getEmbedded()->willReturn(['mock' => $embeddedEntity->reveal()]);
+        $entity->hasEmbedded()->willReturn(true);
 
         // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5, "_embedded": {"mock": [{"_links": {"self": {"href": "/", "templated": false}}, "name": "John"}]}}',
-            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonHalResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 
     public function testSerializationWithEmbeddedArray()
@@ -118,21 +129,25 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
         $self->withHref('/')->willReturn($self->reveal());
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
+        $embeddedEntity->getRel()->willReturn('rel');
         $embeddedEntity->getData()->willReturn(['name' => 'John']);
-        $embeddedEntity->getEmbedded()->willReturn([]);
         $embeddedEntity->getLinksByRel('self')->willReturn([$self->reveal()]);
+        $embeddedEntity->hasEmbedded()->willReturn(false);
         $embeddedEntity->getLinks()->willReturn([$self->reveal()]);
 
         $entity = $this->prophesize(EntityInterface::class);
+        $entity->getRel()->willReturn('root');
         $entity->getData()->willReturn(['id' => 5]);
         $entity->getLinksByRel('self')->willReturn([$self->reveal()]);
         $entity->getLinks()->willReturn([$self->reveal()]);
-        $entity->getEmbedded()->willReturn(['mock' => [$embeddedEntity->reveal()]]);
+        $entity->hasEmbedded()->willReturn(true);
+        $entity->getEmbedded()->willReturn(['mock' => $embeddedEntity->reveal()]);
 
         // When the element is root
-        $this->assertJsonStringEqualsJsonString(
-            '{"_links": {"self": {"href": "/", "templated": false}}, "id": 5, "_embedded": {"mock": [{"_links": {"self": {"href": "/", "templated": false}}, "name": "John"}]}}',
-            (string) (new JsonHalResponse($entity->reveal()))->getBody()->getContents()
+        $this->validator->check(
+            (new JsonHalResponse($entity->reveal()))->getBody()->getContents(),
+            (object) ['$ref' => 'https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json']
         );
+        $this->assertTrue($this->validator->isValid());
     }
 }

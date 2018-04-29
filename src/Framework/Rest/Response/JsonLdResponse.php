@@ -67,15 +67,9 @@ class JsonLdResponse extends Response
         }
 
         $entity = $entity->withoutDataItem('id');
-
-        if ($isRoot) {
-            foreach ($entity->getEmbedded() as $rel => $embed) {
-                if (is_array($embed)) {
-                    $payload[$rel] = array_map([$this, 'convert'], $embed);
-                    continue;
-                }
-
-                $payload[$rel] = $this->convert($embed);
+        if ($entity->hasEmbedded()) {
+            foreach ($entity->getEmbedded() as $embed) {
+                $payload[$embed->getRel()][] = $this->convert($embed);
             }
         }
 

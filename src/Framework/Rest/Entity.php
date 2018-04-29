@@ -26,22 +26,16 @@ class Entity implements EntityInterface
     private $data = [];
 
     /**
-     * @var Entity[][]
+     * @var \SplObjectStorage
      */
     private $embedded = [];
 
     private $meta = [];
 
-    private $error = false;
-
-    public function __construct(string $rel, bool $isError = false)
+    public function __construct(string $rel)
     {
         $this->rel = $rel;
-    }
-
-    public function isError(): bool
-    {
-        return $this->error;
+        $this->embedded = new \SplObjectStorage();
     }
 
     public function getRel(): string
@@ -49,7 +43,7 @@ class Entity implements EntityInterface
         return $this->rel;
     }
 
-    public function withAddedMetaData(array $meta): EntityInterface
+    public function withAddedMetaData(iterable $meta): EntityInterface
     {
         $self = clone $this;
         $self->meta = array_merge($self->meta, $meta);
@@ -57,7 +51,7 @@ class Entity implements EntityInterface
         return $self;
     }
 
-    public function withMetaData(array $meta): EntityInterface
+    public function withMetaData(iterable $meta): EntityInterface
     {
         $self = clone $this;
         $self->meta = $meta;
@@ -65,7 +59,7 @@ class Entity implements EntityInterface
         return $self;
     }
 
-    public function getMetaData(): array
+    public function getMetaData(): iterable
     {
         return $this->meta;
     }
@@ -91,7 +85,7 @@ class Entity implements EntityInterface
         return $this->data[$name] ?? $default;
     }
 
-    public function withData(array $data): EntityInterface
+    public function withData(iterable $data): EntityInterface
     {
         $self = clone $this;
         $self->data = array_merge($self->data, $data);
@@ -107,32 +101,39 @@ class Entity implements EntityInterface
         return $self;
     }
 
-    public function getData(): array
+    public function getData(): iterable
     {
         return $this->data;
     }
 
-    public function withAddedEmbedded(string $type, EntityInterface $entity, bool $collection = true): EntityInterface
+    public function withEmbedded(EntityInterface $entity): EntityInterface
     {
         $self = clone $this;
-        if (!$collection) {
-            $self->embedded[$type] = $entity;
-        } else {
-            if (!isset($self->embedded[$type])) {
-                $self->embedded[$type] = [$entity];
-            } else {
-                $self->embedded[$type][] = $entity;
-            }
+        if ($self->embedded->contains($entity)) {
+            throw new \InvalidArgumentException('Attempting to insert duplicate entity');
+        }
+        $this->embedded->attach($entity);
+
+        return $self;
+    }
+
+    public function withoutEmbedded(EntityInterface $entity): EntityInterface
+    {
+        $self = clone $this;
+        if ($this->embedded->contains($entity)) {
+            $self->embedded->detach($entity);
         }
 
         return $self;
     }
 
-    /**
-     * @return EntityInterface[][]|EntityInterface[]
-     */
-    public function getEmbedded(): array
+    public function getEmbedded(): iterable
     {
         return $this->embedded;
+    }
+
+    public function hasEmbedded(): bool
+    {
+        return !empty($this->embedded);
     }
 }

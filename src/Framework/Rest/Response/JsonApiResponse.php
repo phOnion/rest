@@ -9,22 +9,25 @@ use function GuzzleHttp\Psr7\stream_for;
 
 class JsonApiResponse extends Response
 {
+    const RESPONSE_TYPE_DATA = 'data';
+    const RESPONSE_TYPE_INFO = 'info';
+    const RESPONSE_TYPE_ERROR = 'error';
+
+    private $responseType;
+
     use JsonResponse;
 
-    public function __construct(EntityInterface $entity, $status = 200, array $headers = [])
-    {
-        $payload = !$entity->isError() ? $this->convert($entity, true) : [
-            'id' => (string) $entity->getDataItem('id'),
-            'links' => $this->processLinks($entity->getLinks()),
-            'status' => $status,
-            'title' => $entity->getDataItem('title'),
-            'detail' => $entity->getDataItem('detail'),
-            'source' => $entity->getDataItem('source'),
-            'meta' => $entity->getMetaData()
-        ];
+    public function __construct(
+        EntityInterface $entity,
+        $status = 200,
+        array $headers = [],
+        string $responseType = self::RESPONSE_TYPE_DATA
+    ) {
+        $this->responseType = $responseType;
+        $payload = $this->encode($this->convert($entity, true));
 
         $headers['content-type'] = 'application/vnd.api+json';
-        parent::__construct($status, $headers, stream_for($this->encode($payload)));
+        parent::__construct($status, $headers, stream_for($payload));
     }
 
     /**
@@ -54,98 +57,126 @@ class JsonApiResponse extends Response
         return $collection;
     }
 
-    private function convert(EntityInterface $entity, bool $isRoot = false): array
+    private function convert(EntityInterface $entity): array
+    {
+        if ($this->responseType === self::RESPONSE_TYPE_ERROR) {
+            return $this->handleError($entity);
+        }
+
+        if ($this->responseType === self::RESPONSE_TYPE_INFO) {
+            return $this->handleMeta($entity);
+        }
+
+        return $this->handleSuccess($entity);
+    }
+
+    private function handleError(EntityInterface $entity)
+    {
+        $errors = [];
+        foreach ($entity->getEmbedded() as $item) {
+            $errors[] = array_merge(
+                $item->getData(),
+                $this->handleMeta($item),
+                ['status' => (string) parent::getStatusCode()]
+            );
+        }
+
+        return array_merge(['errors' => $errors], $this->handleMeta($entity));
+    }
+
+    private function handleSuccess(EntityInterface $entity): array
     {
         $payload = [];
+
+        if ($entity->getDataItem('id', false)) {
+            $payload = array_merge($payload, [
+                'id' => (string) $entity->getDataItem('id'),
+            ]);
+
+            $entity = $entity->withoutDataItem('id');
+        } else {
+            if ($entity->hasEmbedded()) {
+                foreach ($entity->getEmbedded() as $embed) {
+                    $payload = array_merge($payload, $this->convert($embed));
+                }
+            }
+        }
+
+        if (!empty($entity->getData())) {
+            $payload['attributes'] = $entity->getData();
+        }
+
+
+        if ($entity->hasEmbedded()) {
+            $embeds = [];
+            foreach ($entity->getEmbedded() as $value) {
+                if (!isset($payload['relationships'])) {
+                    $payload['relationships'] = [];
+                }
+
+                if (!isset($payload['relationships'][$value->getRel()])) {
+                    $payload['relationships'][$value->getRel()] = [];
+                }
+
+                $embed = $this->convert($value);
+                $payload['relationships'][$value->getRel()][] = [
+                    'links' => $embed['links'],
+                    'data' => [
+                        'id' => (string) $embed['id'],
+                            'type' => $embed['type']
+                    ]
+                ];
+                unset($embed['links']);
+                $embeds[] = $embed;
+            }
+
+            if ($embeds !== []) {
+                $payload = [
+                    'data' => [$payload],
+                    'included' => $embeds,
+                ];
+            }
+        }
+
+
+        $payload = array_merge($payload, $this->handleMeta($entity));
+
+        return $payload;
+    }
+
+    private function handleMeta(EntityInterface $entity): array
+    {
         $meta = $entity->getMetaData();
 
         if (isset($meta['api'])) {
             $meta = $meta['api'];
         }
 
-        assert(
-            array_key_exists('@type', $meta),
-            new \RuntimeException('Missing meta key "@type" for rel: ' . $entity->getRel())
-        );
+        $payload = [];
 
-        if ($entity->getLinksByRel('self') === []) {
-            throw new \RuntimeException(
-                'Entity mappings, must have "self" link'
+        if ($this->responseType !== self::RESPONSE_TYPE_ERROR) {
+            if ($entity->getLinksByRel('self') === []) {
+                throw new \RuntimeException(
+                    'Entity mappings, must have "self" link'
+                );
+            }
+
+            assert(
+                array_key_exists('@type', $meta),
+                new \RuntimeException('Missing meta key "@type" for rel: ' . $entity->getRel())
             );
+
+            $payload['type'] = $meta['@type'];
+            if (isset($meta['@type'])) {
+                unset($meta['@type']);
+            }
+        }
+
+        if (!empty($meta)) {
+            $payload['meta'] = (object) $meta;
         }
 
         $payload['links'] = $this->processLinks($entity->getLinks());
-        if ($entity->getDataItem('id', false)) {
-            $payload = array_merge($payload, [
-                'id' => (string) $entity->getDataItem('id'),
-                'type' => $meta['@type']
-            ]);
-
-            $entity = $entity->withoutDataItem('id');
-
-            if (!empty($entity->getData())) {
-                $payload = array_merge_recursive($payload, [
-                    'attributes' => $entity->getData()
-                ]);
-            }
-        } else {
-            $payload = array_merge($payload, [
-                'data' => array_map(function ($item) {
-                    return $this->convert($item);
-                }, array_values($entity->getEmbedded()))
-            ]);
-        }
-
-        if (isset($meta['@type'])) {
-            unset($meta['@type']);
-        }
-
-        foreach ($entity->getEmbedded() as $rel => $values) {
-            if (!isset($payload['relationships'])) {
-                $payload['relationships'] = [];
-            }
-
-            if (!isset($payload['relationships'][$rel])) {
-                $payload['relationships'][$rel] = [];
-            }
-
-            if (is_array($values)) {
-                $embeds = array_map(function ($embed) {
-                    return $this->convert($embed);
-                }, $values);
-
-
-                $payload['relationships'][$rel][] = [
-                    'links' => $embeds[0]['links'],
-                    'data' => array_map(function ($embed) {
-                        return [
-                            'id' => (string)$embed['id'],
-                            'type' => $embed['type']
-                        ];
-                    }, $embeds)
-                ];
-            } else {
-                $embeds = $this->convert($values);
-                $payload['relationships'][$rel] = [
-                    'links' => $embeds['links'],
-                    'data' => [
-                        'id' => (string)$embeds['id'],
-                        'type' => $embeds['type']
-                    ]
-                ];
-            }
-
-            if ($isRoot) {
-                if ($embeds !== []) {
-                    $payload = ['data' => $payload];
-                    $payload['included'] = isset($embeds[0]) ? $embeds : [$embeds];
-                }
-            }
-        }
-
-        if ($meta !== []) {
-            $payload['meta'] = $meta;
-        }
 
         return $payload;
     }

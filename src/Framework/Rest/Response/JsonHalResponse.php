@@ -50,7 +50,7 @@ class JsonHalResponse extends Response
         return $collection;
     }
 
-    private function convert(EntityInterface $entity, bool $isRoot = false): array
+    private function convert(EntityInterface $entity): array
     {
         $payload = [];
         if ($entity->getLinksByRel('self') === []) {
@@ -62,18 +62,13 @@ class JsonHalResponse extends Response
         $payload['_links'] = $this->processLinks($entity->getLinks(), $entity->getData());
         $payload = array_merge($payload, $entity->getData());
 
-        if ($isRoot) {
-            foreach ($entity->getEmbedded() as $rel => $values) {
+        if ($entity->hasEmbedded()) {
+            foreach ($entity->getEmbedded() as $value) {
                 if (!isset($payload['_embedded'])) {
                     $payload['_embedded'] = [];
                 }
 
-                if (is_array($values)) {
-                    $payload['_embedded'][$rel] = array_map([$this, 'convert'], $values);
-                    continue;
-                }
-
-                $payload['_embedded'][$rel] = [$this->convert($values)];
+                $payload['_embedded'][$value->getRel()][] = $this->convert($value);
             }
         }
 
