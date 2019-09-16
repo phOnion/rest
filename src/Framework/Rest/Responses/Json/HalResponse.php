@@ -3,7 +3,7 @@ namespace Onion\Framework\Rest\Responses\Json;
 
 use GuzzleHttp\Psr7\Response;
 use Onion\Framework\Rest\Interfaces\TransformableInterface;
-use Onion\Framework\Rest\Transformers\Hal;
+use Onion\Framework\Rest\Transformers\Traits\Hal;
 
 use function Onion\Framework\Common\merge;
 
@@ -19,10 +19,7 @@ class HalResponse extends Response
         $version = '1.1',
         $reason = null
     ) {
-        $headers['content-type'] = merge(
-            (array) ($headers['content-type'] ?? []),
-            ['content-type' => ['application/json+hal']]
-        );
+        $headers['content-type'] = 'application/json+hal';
 
         if ($body instanceof TransformableInterface) {
             $body = $this->getTransformer()->transform(

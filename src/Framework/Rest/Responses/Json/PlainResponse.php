@@ -17,10 +17,7 @@ class PlainResponse extends Response
         $version = '1.1',
         $reason = null
     ) {
-        $headers['content-type'] = merge(
-            (array) ($headers['content-type'] ?? []),
-            ['content-type' => ['application/json']]
-        );
+        $headers['content-type'] = 'application/json';
 
         if ($body instanceof TransformableInterface) {
             $body = $body->transform()->getData();

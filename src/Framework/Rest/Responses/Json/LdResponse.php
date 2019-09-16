@@ -3,7 +3,9 @@ namespace Onion\Framework\Rest\Responses\Json;
 
 use GuzzleHttp\Psr7\Response;
 use Onion\Framework\Rest\Interfaces\TransformableInterface;
-use Onion\Framework\Rest\Transformers\Ld;
+use Onion\Framework\Rest\Transformers\Traits\Ld;
+
+use function Onion\Framework\Common\merge;
 
 class LdResponse extends Response
 {
@@ -17,10 +19,7 @@ class LdResponse extends Response
         $version = '1.1',
         $reason = null
     ) {
-        $headers['content-type'] = merge(
-            (array) ($headers['content-type'] ?? []),
-            ['content-type' => ['application/ld+json']]
-        );
+        $headers['content-type'] = 'application/ld+json';
 
         if ($body instanceof TransformableInterface) {
             $body = $this->getTransformer()->transform(

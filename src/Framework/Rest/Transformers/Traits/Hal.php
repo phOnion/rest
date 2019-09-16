@@ -1,5 +1,7 @@
 <?php
-namespace Onion\Framework\Rest\Transformers;
+namespace Onion\Framework\Rest\Transformers\Traits;
+
+use Onion\Framework\Rest\Transformers\HalTransformer;
 
 trait Hal
 {
