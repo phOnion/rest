@@ -3,6 +3,7 @@ namespace Onion\Framework\Rest;
 
 use Fig\Link\EvolvableLinkProviderTrait;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
+use Onion\Framework\Rest\Interfaces\TransformableInterface;
 
 /**
  * Class Entity
@@ -106,7 +107,7 @@ class Entity implements EntityInterface
         return $this->data;
     }
 
-    public function withEmbedded(EntityInterface $entity): EntityInterface
+    public function withEmbedded(TransformableInterface $entity): EntityInterface
     {
         $self = clone $this;
         if ($self->embedded->contains($entity)) {
@@ -117,7 +118,7 @@ class Entity implements EntityInterface
         return $self;
     }
 
-    public function withoutEmbedded(EntityInterface $entity): EntityInterface
+    public function withoutEmbedded(TransformableInterface $entity): EntityInterface
     {
         $self = clone $this;
         if ($this->embedded->contains($entity)) {
