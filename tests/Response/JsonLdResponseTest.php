@@ -5,6 +5,7 @@ namespace Response;
 use JsonSchema\Validator;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Onion\Framework\Rest\Response\JsonLdResponse;
+use Onion\Framework\Rest\Responses\Json\LdResponse;
 use Psr\Link\EvolvableLinkInterface;
 
 class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
@@ -28,11 +29,9 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getMetaData()->willReturn([
-            'ld' => [
-                '@removed' => true,
-                '@base' => 'http://example.com',
-                'visible' => true
-            ]
+            '@removed' => true,
+            '@base' => 'http://example.com',
+            'visible' => true
         ]);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5]);
@@ -45,7 +44,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         $entity->hasEmbedded()->willReturn(false);
 
         $this->validator->check(
-            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (new LdResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents(),
             (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
         $this->assertTrue($this->validator->isValid());
@@ -61,9 +70,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getMetaData()->willReturn([
-            'ld' => [
-                '@vocab' => 'http://schema.org',
-            ]
+            '@vocab' => 'http://schema.org',
         ]);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5]);
@@ -77,7 +84,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
 
         $this->validator->check(
-            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (new LdResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents(),
             (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
         $this->assertTrue($this->validator->isValid());
@@ -111,9 +128,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getMetaData()->willReturn([
-            'ld' => [
-                '@base' => 'http://example.com'
-            ]
+            '@base' => 'http://example.com'
         ]);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5, 'spouse' => 25]);
@@ -128,7 +143,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
 
         $this->validator->check(
-            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (new LdResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents(),
             (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
         $this->assertTrue($this->validator->isValid());
@@ -145,9 +170,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
         $embeddedEntity->getMetaData()->willReturn([
-            'ld' => [
-                '@base' => 'http://example.com'
-            ]
+            '@base' => 'http://example.com'
         ]);
         $embeddedEntity->getRel()->willReturn('Thing');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
@@ -161,9 +184,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getMetaData()->willReturn([
-            'ld' => [
-                '@base' => 'http://example.com'
-            ]
+            '@base' => 'http://example.com'
         ]);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5]);
@@ -177,7 +198,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         });
 
         $this->validator->check(
-            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (new LdResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents(),
             (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
         $this->assertTrue($this->validator->isValid());
@@ -194,9 +225,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $embeddedEntity = $this->prophesize(EntityInterface::class);
         $embeddedEntity->getMetaData()->willReturn([
-            'ld' => [
-                '@base' => 'http://example.com'
-            ]
+            '@base' => 'http://example.com'
         ]);
         $embeddedEntity->getRel()->willReturn('Thing');
         $embeddedEntity->getData()->willReturn(['id' => 5, 'name' => 'John']);
@@ -210,9 +239,7 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
 
         $entity = $this->prophesize(EntityInterface::class);
         $entity->getMetaData()->willReturn([
-            'ld' => [
-                '@base' => 'http://example.com'
-            ]
+            '@base' => 'http://example.com'
         ]);
         $entity->getRel()->willReturn('Thing');
         $entity->getData()->willReturn(['id' => 5]);
@@ -226,7 +253,17 @@ class JsonLdResponseTest extends \PHPUnit_Framework_TestCase
         });
 
         $this->validator->check(
-            (new JsonLdResponse($entity->reveal()))->getBody()->getContents(),
+            (new LdResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents(),
             (object) ['$ref' => 'http://json-schema.org/draft-04/schema']
         );
         $this->assertTrue($this->validator->isValid());

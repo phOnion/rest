@@ -4,6 +4,7 @@ namespace Tests\Response;
 
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Onion\Framework\Rest\Response\JsonPlainResponse;
+use Onion\Framework\Rest\Responses\Json\PlainResponse;
 
 class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,7 +15,17 @@ class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
         $entity->getEmbedded()->willReturn([]);
         $this->assertJsonStringEqualsJsonString(
             '{"id": 5}',
-            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+            (string) (new PlainResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents()
         );
     }
 
@@ -29,7 +40,17 @@ class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": {"name": "John"}}',
-            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+            (string) (new PlainResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents()
         );
     }
 
@@ -44,7 +65,17 @@ class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": {"name": "John"}}',
-            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+            (string) (new PlainResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents()
         );
     }
 
@@ -59,7 +90,17 @@ class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": [{"name": "John"}]}',
-            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+            (string) (new PlainResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents()
         );
     }
 
@@ -74,7 +115,17 @@ class JsonPlainResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertJsonStringEqualsJsonString(
             '{"id":5, "mock": [{"name": "John"}]}',
-            (string) (new JsonPlainResponse($entity->reveal()))->getBody()->getContents()
+            (string) (new PlainResponse(200, [], new class($entity) implements TransformableInterface {
+                private $entity;
+                public function __construct($entity)
+                {
+                    $this->entity = $entity;
+                }
+                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
+                {
+                    return $this->entity->reveal();
+                }
+            }))->getBody()->getContents()
         );
     }
 }
