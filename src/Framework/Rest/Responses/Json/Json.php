@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
-namespace Onion\Framework\Rest\Response;
+namespace Onion\Framework\Rest\Responses\Json;
 
-trait JsonResponse
+trait Json
 {
     protected function encode($data, bool $pretty = false): string
     {

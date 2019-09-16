@@ -18,7 +18,8 @@
         "php": "^7.2",
         "roave/security-advisories": "dev-master",
         "guzzlehttp/psr7": "^1.4",
-        "onion/interfaces": "^2.0.0-rc3",
+        "onion/interfaces": "dev-master as 2.1",
+        "onion/common": "dev-master",
         "fig/link-util": "^1.0"
     },
     "require-dev": {
