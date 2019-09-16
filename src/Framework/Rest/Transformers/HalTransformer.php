@@ -1,11 +1,11 @@
 <?php
 namespace Onion\Framework\Rest\Transformers;
 
+use function Onion\Framework\Common\merge;
 use Onion\Framework\Common\Collection\Collection;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
-use Psr\Link\LinkInterface;
 
-use function Onion\Framework\Common\merge;
+use Psr\Link\LinkInterface;
 
 class HalTransformer
 {
@@ -44,7 +44,7 @@ class HalTransformer
         foreach ($raw as $link) {
             $key = implode(',', $link['rels']);
             unset($link['rels']);
-            $links[$key][] = $link;
+            $links[$key] = $link;
         }
 
         return $links;
@@ -57,7 +57,8 @@ class HalTransformer
         }
         $data = [];
         foreach ($embedded as $item) {
-            $data[$item->getRel()][] = $this->convert($item);
+            $item = $item->transform();
+            $data[$item->getRel()][] = $this->transform($item);
         }
 
         return $data;
