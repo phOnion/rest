@@ -5,14 +5,16 @@ namespace Tests\Response;
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 use Psr\Link\EvolvableLinkInterface;
 use JsonSchema\Validator;
-use Onion\Framework\Rest\Interfaces\TransformableInterface;
 use Onion\Framework\Rest\Responses\Json\HalResponse;
+use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
-class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
+class JsonHalResponseTest extends TestCase
 {
+    use ProphecyTrait;
     // https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json
 
-    public function setUp()
+    protected function setUp(): void
     {
         $this->validator = new Validator();
     }
@@ -20,20 +22,11 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
     public function testExceptionOnMissingLinks()
     {
         $this->expectException(\LogicException::class);
-        new HalResponse(200, [], new class($this->prophesize(EntityInterface::class)) implements TransformableInterface {
-            private $entity;
-            public function __construct($entity)
-            {
-                $this->entity = $entity;
-            }
-            public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
-            {
-                $this->entity->getData()->willReturn(['id' => 5]);
-                $this->entity->getLinksByRel('self')->willReturn([]);
+        $entity = $this->prophesize(EntityInterface::class);
+        $entity->getData()->willReturn(['id' => 5]);
+        $entity->getLinksByRel('self')->willReturn([]);
 
-                return $this->entity->reveal();
-            }
-        });
+        new HalResponse(200, [], $entity->reveal());
     }
 
     public function testBasicSerialization()
@@ -53,17 +46,7 @@ class JsonHalResponseTest extends \PHPUnit_Framework_TestCase
 
 
         $this->validator->check(
-            (new HalResponse(200, [], new class($entity) implements TransformableInterface {
-                private $entity;
-                public function __construct($entity)
-                {
-                    $this->entity = $entity;
-                }
-                public function transform(iterable $includes = [], iterable $fields = []): \Onion\Framework\Rest\Interfaces\EntityInterface
-                {
-                    return $this->entity->reveal();
-                }
-            }))->getBody()->getContents(),
+            (new HalResponse(200, [], $entity->reveal()))->getBody()->getContents(),
             (object) ['$ref' => 'https://raw.githubusercontent.com/scottsmith130/hal-json-schema/master/hal.json']
         );
         $this->assertTrue($this->validator->isValid());

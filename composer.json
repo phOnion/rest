@@ -1,29 +1,32 @@
 {
-    "name": "onion/rest",
-    "authors": [{
-        "name": "Dimitar Dimitrov",
-        "email": "daghostman.dd@gmail.com"
-    }],
-    "autoload": {
-        "psr-4": {
-            "Onion\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
-    },
-    "require": {
-        "php": "^7.2",
-        "roave/security-advisories": "dev-master",
-        "guzzlehttp/psr7": "^1.4",
-        "onion/interfaces": "dev-master as 2.1",
-        "onion/common": "dev-master",
-        "fig/link-util": "^1.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^5.7",
-        "justinrainbow/json-schema": "^1.2"
+  "name": "onion/rest",
+  "authors": [
+    {
+      "name": "Dimitar Dimitrov",
+      "email": "daghostman.dd@gmail.com"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Onion\\Framework\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=8.1",
+    "roave/security-advisories": "@dev",
+    "guzzlehttp/psr7": "^1.4",
+    "onion/interfaces": "@dev",
+    "onion/common": "@dev",
+    "fig/link-util": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "justinrainbow/json-schema": "^1.2",
+    "phpspec/prophecy-phpunit": "^2.0"
+  }
 }

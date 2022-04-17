@@ -1,11 +1,12 @@
 <?php
+
 namespace Onion\Framework\Rest\Transformers;
 
 use Onion\Framework\Rest\Interfaces\EntityInterface;
 
-use function Onion\Framework\Common\merge;
+use function Onion\Framework\merge;
 
-class LdTransformer
+class LinkedDataTransformer
 {
     const ALLOWED_META_KEYS = [
         '@vocab',
@@ -21,7 +22,10 @@ class LdTransformer
             (array) $entity->getData(),
             $data['@context']['@base'] ?? ''
         ));
-        $data = merge($data, $this->getEmbedded($entity->getEmbedded(), true));
+
+        if ($entity->hasEmbedded()) {
+            $data = merge($data, $this->getEmbedded($entity->getEmbedded(), true));
+        }
 
         return merge($data, (array) $entity->withoutDataItem('id')->getData());
     }
@@ -54,7 +58,8 @@ class LdTransformer
                 '~({([^}]+)})~i',
                 function ($matches) use ($props) {
                     return $props[$matches[2]] ?? $matches[1];
-                }, $base . $link->getHref()
+                },
+                $base . $link->getHref()
             );
 
             foreach ($link->getRels() as $rel) {
