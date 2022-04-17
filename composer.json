@@ -19,7 +19,7 @@
   "require": {
     "php": ">=8.1",
     "roave/security-advisories": "@dev",
-    "guzzlehttp/psr7": "^1.4",
+    "guzzlehttp/psr7": "^2.2",
     "onion/interfaces": "@dev",
     "onion/common": "@dev",
     "fig/link-util": "^1.0"
